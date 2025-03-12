@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Comic, Chapter } from '../types/comic';
 import { API_BASE_URL } from '../config/env';
+import { Link } from 'react-router-dom'
 
 export function ComicDetail() {
   const { id } = useParams();
@@ -139,9 +140,11 @@ export function ComicDetail() {
                     {new Date(chapter.updated_at).toLocaleDateString('vi-VN')}
                   </p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                  Đọc ngay
-                </button>
+                <Link to={`/chapter/${chapter.id}`}>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                    Đọc ngay
+                  </button>
+                </Link>
               </div>
             ))}
           </div>
