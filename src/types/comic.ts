@@ -11,10 +11,25 @@ export interface Comic {
   genres: string;
   introduction: string;
   image: string;
+  background_image?: string;
   views: number;
   total_chapter: number;
   like: number;
   rating: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface Chapter {
+  id: number;
+  comic_info: {
+    id: number;
+    name: string;
+  };
+  number: number;
+  title: string;
+  views: number;
+  src_image: string;
+  updated_at: string;
+  created_at: string;
 }
