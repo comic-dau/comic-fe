@@ -24,7 +24,7 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
   }
 
   return (
-    <div className="relative h-[500px] group">
+    <div className="relative h-[500px] group w-[85%] mx-auto rounded-lg overflow-hidden bg-gray-800">
       <div className="absolute inset-0">
         <img
           src={`https://${comic.image}`}
@@ -35,10 +35,10 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
             target.src = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&h=500&fit=crop';
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent rounded-lg" />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+      <div className="absolute bottom-0 left-0 right-0 p-8 text-white rounded-b-lg">
         <h2 className="text-3xl font-bold mb-2">{comic.name}</h2>
         <p>Chapter {comic.last_chapter || '0'}</p>
         <p className="text-gray-200 mb-4 line-clamp-2">{comic.introduction}</p>
