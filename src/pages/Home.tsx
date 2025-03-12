@@ -2,84 +2,41 @@ import { useEffect, useState } from 'react';
 import { Comic } from '../types/comic';
 import { ComicCard } from '../components/ComicCard';
 import { FeaturedSlider } from '../components/FeaturedSlider';
+import { API_BASE_URL } from '../config/env';
 
-const MOCK_COMICS: Comic[] = [
-  {
-    "id": 6,
-    "last_chapter": null,
-    "author_info": {
-      "id": 2,
-      "name": "Khanh Le"
-    },
-    "name": "OnePunch-Man2",
-    "genres": "Action",
-    "introduction": "123",
-    "image": "minio.daihiep.click/comic/comic/OnePunch-Man2/anh-hung-onepunch-5218.jpg",
-    "views": 0,
-    "total_chapter": 0,
-    "like": 0,
-    "rating": 0,
-    "created_at": "2025-03-11T08:36:26.180328Z",
-    "updated_at": "2025-03-11T08:36:26.180401Z"
-  },
-  {
-    "id": 5,
-    "last_chapter": 3,
-    "author_info": {
-      "id": 2,
-      "name": "Khanh Le"
-    },
-    "name": "OnePunch-Man",
-    "genres": "Action",
-    "introduction": "123",
-    "image": "minio.daihiep.click/comic/comic/OnePunch-Man/anh-hung-onepunch-5218.jpg",
-    "views": 0,
-    "total_chapter": 0,
-    "like": 0,
-    "rating": 0,
-    "created_at": "2025-03-11T08:15:51.576458Z",
-    "updated_at": "2025-03-11T08:15:51.576524Z"
-  },
-  {
-    "id": 4,
-    "last_chapter": 1,
-    "author_info": {
-      "id": 2,
-      "name": "Khanh Le"
-    },
-    "name": "Cuộc đời Khanh Le",
-    "genres": "Adventure,Action",
-    "introduction": "Cuộc đời Khanh Le",
-    "image": "minio.daihiep.click/comic/comic/Cuộc đời Khanh Le/OIP.jpeg",
-    "views": 0,
-    "total_chapter": 0,
-    "like": 0,
-    "rating": 0,
-    "created_at": "2025-03-10T08:32:33.111954Z",
-    "updated_at": "2025-03-10T08:45:13.751004Z"
-  }
-];
+const API_URL = `${API_BASE_URL}/comic/`;
 
 export function Home() {
-  const [comics, setComics] = useState<Comic[]>(MOCK_COMICS);
-  const [loading, setLoading] = useState(false);
+  const [comics, setComics] = useState<Comic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Uncomment and update this when your API is ready
-  /*
   useEffect(() => {
-    setLoading(true);
-    fetch('YOUR_API_ENDPOINT')
-      .then(res => res.json())
-      .then(data => {
+    const fetchComics = async () => {
+      try {
+        const response = await fetch(API_URL, {
+          headers: {
+            'accept': 'application/json'          
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch comics');
+        }
+
+        const data = await response.json();
         setComics(data);
+        setError(null);
+      } catch (err) {
+        setError('Error loading comics. Please try again later.');
+        console.error('Error fetching comics:', err);
+      } finally {
         setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching comics:', error);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchComics();
   }, []);
-  */
 
   if (loading) {
     return (
@@ -89,9 +46,25 @@ export function Home() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <p className="text-xl font-semibold">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main>
-      <FeaturedSlider comics={comics.slice(0, 5)} />
+      {comics.length > 0 && <FeaturedSlider comics={comics.slice(0, 5)} />}
       
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">MỚI CẬP NHẬT</h2>
