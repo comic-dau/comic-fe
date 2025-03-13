@@ -25,25 +25,39 @@ export function ChapterDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchChapterData = async () => {
+      if (fetchedRef.current || !chapterId) return;
+      fetchedRef.current = true;
+
       try {
-        const response = await fetch(`${API_BASE_URL}/chapter/${chapterId}`);
-        if (!response.ok) {
+        const [chapterResponse, viewResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/chapter/${chapterId}`),
+          fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
+            method: 'PUT',
+            headers: {
+              'accept': 'application/json'
+            }
+          })
+        ]);
+
+        if (!chapterResponse.ok) {
           throw new Error('Failed to fetch chapter data');
         }
-        const data = await response.json();
+
+        const data = await chapterResponse.json();
         const parsedData = {
           ...data,
           src_image: JSON.parse(data.src_image.replace(/'/g, '"'))
         };
         setChapter(parsedData);
 
-        // Increment views for the chapter
-        incrementViews(parsedData.id);
+        const viewData = await viewResponse.json();
+        console.log('View response:', viewData);
 
-        // Fetch chapter list after getting current chapter
+        // Fetch chapter list
         const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`);
         if (!chaptersResponse.ok) {
           throw new Error('Failed to fetch chapter list');
@@ -60,27 +74,17 @@ export function ChapterDetail() {
       }
     };
 
-    if (chapterId) {
-      fetchChapterData();
-    }
-  }, [chapterId]);
+    fetchChapterData();
 
-  const incrementViews = async (chapterId: number) => {
-    try {
-      await fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
-        method: 'PUT',
-        headers: {
-          'accept': 'application/json'
-        }
-      });
-    } catch (err) {
-      console.error('Error incrementing views:', err);
-    }
-  };
+    return () => {
+      fetchedRef.current = false;
+    };
+  }, [chapterId]);
 
   const navigateToChapter = (targetNumber: number) => {
     const targetChapter = chapterList.find(ch => ch.number === targetNumber);
     if (targetChapter) {
+      fetchedRef.current = false; // Reset the fetch flag when navigating
       const urlName = encodeURIComponent(targetChapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
       navigate(`/comic/${urlName}/chapter/${targetChapter.number}`, {
         state: { chapterId: targetChapter.id }
