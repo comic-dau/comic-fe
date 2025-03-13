@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../config/env';
 
@@ -17,8 +17,10 @@ interface Chapter {
 export function ChapterDetail() {
   const { name, number } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const chapterId = location.state?.chapterId;
   const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +39,15 @@ export function ChapterDetail() {
           src_image: JSON.parse(data.src_image.replace(/'/g, '"'))
         };
         setChapter(parsedData);
+
+        // Fetch chapter list after getting current chapter
+        const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`);
+        if (!chaptersResponse.ok) {
+          throw new Error('Failed to fetch chapter list');
+        }
+        const chaptersData = await chaptersResponse.json();
+        setChapterList(chaptersData);
+        
         setError(null);
       } catch (err) {
         setError('Error loading chapter. Please try again later.');
@@ -51,6 +62,34 @@ export function ChapterDetail() {
     }
   }, [chapterId]);
 
+  const navigateToChapter = (targetNumber: number) => {
+    const targetChapter = chapterList.find(ch => ch.number === targetNumber);
+    if (targetChapter) {
+      const urlName = encodeURIComponent(targetChapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
+      navigate(`/comic/${urlName}/chapter/${targetChapter.number}`, {
+        state: { chapterId: targetChapter.id }
+      });
+    }
+  };
+
+  const handlePrevChapter = () => {
+    if (!chapter) return;
+    const currentNumber = chapter.number;
+    const prevChapter = chapterList.find(ch => ch.number === currentNumber - 1);
+    if (prevChapter) {
+      navigateToChapter(prevChapter.number);
+    }
+  };
+
+  const handleNextChapter = () => {
+    if (!chapter) return;
+    const currentNumber = chapter.number;
+    const nextChapter = chapterList.find(ch => ch.number === currentNumber + 1);
+    if (nextChapter) {
+      navigateToChapter(nextChapter.number);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
       if (!chapter) return;
@@ -59,7 +98,7 @@ export function ChapterDetail() {
       if (e.deltaY > 0) {
         // Scroll down - next image
         setCurrentImageIndex(prev => {
-          if (prev === -1) return 0; // Start reading from first page
+          if (prev === -1) return 0;
           return prev < chapter.src_image.length - 1 ? prev + 1 : prev;
         });
       } else {
@@ -122,6 +161,8 @@ export function ChapterDetail() {
   }
 
   const urlName = encodeURIComponent(chapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
+  const hasPrevChapter = chapterList.some(ch => ch.number === chapter.number - 1);
+  const hasNextChapter = chapterList.some(ch => ch.number === chapter.number + 1);
 
   if (currentImageIndex === -1) {
     return (
@@ -149,14 +190,16 @@ export function ChapterDetail() {
                 Bắt đầu đọc
               </button>
               <button 
-                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                disabled
+                onClick={handlePrevChapter}
+                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!hasPrevChapter}
               >
                 Chương trước
               </button>
               <button 
-                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                disabled
+                onClick={handleNextChapter}
+                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!hasNextChapter}
               >
                 Chương sau
               </button>
