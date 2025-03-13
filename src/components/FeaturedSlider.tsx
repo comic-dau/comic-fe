@@ -7,15 +7,45 @@ interface FeaturedSliderProps {
   comics: Comic[];
 }
 
+function timeAgo(date: string) {
+  const now = new Date();
+  const updatedDate = new Date(date);
+  const seconds = Math.floor((now.getTime() - updatedDate.getTime()) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return `${interval} năm trước`;
+
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return `${interval} tháng trước`;
+
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return `${interval} ngày trước`;
+
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return `${interval} giờ trước`;
+
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return `${interval} phút trước`;
+
+  return `${seconds} giây trước`;
+}
+
 export function FeaturedSlider({ comics }: FeaturedSliderProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const nextSlide = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
     setCurrentSlide((prev) => (prev + 1) % comics.length);
+    setTimeout(() => setIsAnimating(false), 500);
   };
 
   const prevSlide = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
     setCurrentSlide((prev) => (prev - 1 + comics.length) % comics.length);
+    setTimeout(() => setIsAnimating(false), 500);
   };
 
   const comic = comics[currentSlide];
@@ -28,29 +58,34 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
 
   return (
     <div className="relative h-[500px] group w-[85%] mx-auto rounded-lg overflow-hidden bg-gray-800">
-      <div className="absolute inset-0 transition-transform duration-500 ease-in-out transform">
-        <img
-          src={`https://${comic.image}`}
-          alt={comic.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&h=500&fit=crop';
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent rounded-lg" />
+      <div className="absolute inset-0 flex transition-transform duration-500 ease-in-out transform" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+        {comics.map((comic, index) => (
+          <div key={index} className="w-full flex-shrink-0">
+            <img
+              src={`https://${comic.image}`}
+              alt={comic.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&h=500&fit=crop';
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent rounded-lg" />
+          </div>
+        ))}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-8 text-white rounded-b-lg transition-opacity duration-500 ease-in-out">
+      <div className="absolute bottom-0 left-0 right-0 p-8 text-white rounded-b-lg transition-opacity duration-500 ease-in-out bg-gradient-to-t from-gray-800 via-gray-800/50 to-gray-800/25">
         <h2 className="text-3xl font-bold mb-2">{comic.name}</h2>
         <p>Chapter {comic.last_chapter || '0'}</p>
+        <p>{timeAgo(comic.updated_at)}</p>
         <p className="text-gray-200 mb-4 line-clamp-2">{comic.introduction}</p>
         <Link 
           to={`/comic/${urlName}`}
           state={{ comicId: comic.id }}
           className="inline-block bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors"
         >
-          XEM THÔNG TIN
+          XEM CHI TIẾT
         </Link>
       </div>
 
