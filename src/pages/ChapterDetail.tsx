@@ -40,6 +40,9 @@ export function ChapterDetail() {
         };
         setChapter(parsedData);
 
+        // Increment views for the chapter
+        incrementViews(parsedData.id);
+
         // Fetch chapter list after getting current chapter
         const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`);
         if (!chaptersResponse.ok) {
@@ -61,6 +64,19 @@ export function ChapterDetail() {
       fetchChapterData();
     }
   }, [chapterId]);
+
+  const incrementViews = async (chapterId: number) => {
+    try {
+      await fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
+        method: 'PUT',
+        headers: {
+          'accept': 'application/json'
+        }
+      });
+    } catch (err) {
+      console.error('Error incrementing views:', err);
+    }
+  };
 
   const navigateToChapter = (targetNumber: number) => {
     const targetChapter = chapterList.find(ch => ch.number === targetNumber);
