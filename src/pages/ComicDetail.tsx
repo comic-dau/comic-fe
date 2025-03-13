@@ -108,9 +108,14 @@ export function ComicDetail() {
                 <p className="text-gray-300 mb-2">Tác giả: {comic.author_info.name}</p>
                 <p className="text-gray-300 mb-4">Thể loại: {comic.genres}</p>
                 <div className="flex gap-4">
-                  <button className="bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors">
-                    Đọc từ đầu
-                  </button>
+                  <Link 
+                    to={`/comic/${encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'))}/chapter/${chapters[chapters.length-1].number}`}
+                    state={{ chapterId: chapters[chapters.length-1].id }}
+                  >
+                    <button className="bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors">
+                      Đọc từ đầu
+                    </button>
+                  </Link>
                   <button className="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors">
                     Theo dõi
                   </button>
