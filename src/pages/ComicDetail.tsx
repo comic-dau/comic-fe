@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Comic, Chapter } from '../types/comic';
 import { API_BASE_URL } from '../config/env';
-import { Link } from 'react-router-dom'
 
 export function ComicDetail() {
-  const { id } = useParams();
+  const { name } = useParams<{ name: string }>();
+  const location = useLocation();
+  const comicId = location.state?.comicId;
   const [comic, setComic] = useState<Comic | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,10 +18,10 @@ export function ComicDetail() {
     const fetchComicData = async () => {
       try {
         const [comicResponse, chaptersResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/comic/${id}`, {
+          fetch(`${API_BASE_URL}/comic/${comicId}`, {
             signal: abortController.signal
           }),
-          fetch(`${API_BASE_URL}/chapter/?comic=${id}`, {
+          fetch(`${API_BASE_URL}/chapter/?comic=${comicId}`, {
             signal: abortController.signal
           })
         ]);
@@ -52,14 +53,14 @@ export function ComicDetail() {
       }
     };
 
-    if (id) {
+    if (comicId) {
       fetchComicData();
     }
 
     return () => {
       abortController.abort();
     };
-  }, [id]);
+  }, [comicId]);
 
   if (loading) {
     return (
@@ -130,23 +131,30 @@ export function ComicDetail() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold mb-4">Danh sách chương</h2>
           <div className="divide-y">
-            {chapters.map((chapter) => (
-              <div key={chapter.id} className="py-4 flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    Chapter {chapter.number}: {chapter.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {new Date(chapter.updated_at).toLocaleDateString('vi-VN')}
-                  </p>
+            {chapters.map((chapter) => {
+              const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
+              return (
+                <div key={chapter.id} className="py-4 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      Chapter {chapter.number}: {chapter.title}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {new Date(chapter.updated_at).toLocaleDateString('vi-VN')}
+                    </p>
+                  </div>
+                  <Link 
+                    to={`/comic/${urlName}/chapter/${chapter.number}`}
+                    state={{ chapterId: chapter.id }}
+                  >
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" 
+                    onClick={() => console.log(`Read comic ${name}`)}>
+                      Đọc ngay
+                    </button>
+                  </Link>
                 </div>
-                <Link to={`/chapter/${chapter.id}`}>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                    Đọc ngay
-                  </button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

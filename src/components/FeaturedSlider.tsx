@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { Comic } from '../types/comic';
 
 interface FeaturedSliderProps {
@@ -23,9 +24,11 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
     return null;
   }
 
+  const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
+
   return (
     <div className="relative h-[500px] group w-[85%] mx-auto rounded-lg overflow-hidden bg-gray-800">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 transition-transform duration-500 ease-in-out transform">
         <img
           src={`https://${comic.image}`}
           alt={comic.name}
@@ -38,13 +41,17 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent rounded-lg" />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-8 text-white rounded-b-lg">
+      <div className="absolute bottom-0 left-0 right-0 p-8 text-white rounded-b-lg transition-opacity duration-500 ease-in-out">
         <h2 className="text-3xl font-bold mb-2">{comic.name}</h2>
         <p>Chapter {comic.last_chapter || '0'}</p>
         <p className="text-gray-200 mb-4 line-clamp-2">{comic.introduction}</p>
-        <button className="bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors">
+        <Link 
+          to={`/comic/${urlName}`}
+          state={{ comicId: comic.id }}
+          className="inline-block bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors"
+        >
           XEM THÔNG TIN
-        </button>
+        </Link>
       </div>
 
       <button

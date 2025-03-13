@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../config/env';
 
@@ -15,9 +15,11 @@ interface Chapter {
 }
 
 export function ChapterDetail() {
-  const { id } = useParams();
+  const { name, number } = useParams();
+  const location = useLocation();
+  const chapterId = location.state?.chapterId;
   const [chapter, setChapter] = useState<Chapter | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 means intro screen
+  const [currentImageIndex, setCurrentImageIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,7 @@ export function ChapterDetail() {
   useEffect(() => {
     const fetchChapterData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/chapter/${id}`);
+        const response = await fetch(`${API_BASE_URL}/chapter/${chapterId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch chapter data');
         }
@@ -44,10 +46,10 @@ export function ChapterDetail() {
       }
     };
 
-    if (id) {
+    if (chapterId) {
       fetchChapterData();
     }
-  }, [id]);
+  }, [chapterId]);
 
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
@@ -91,6 +93,7 @@ export function ChapterDetail() {
   };
 
   const startReading = () => {
+    console.log(`Start reading ${name} - Chapter ${number}`);
     setCurrentImageIndex(0);
   };
 
@@ -118,17 +121,20 @@ export function ChapterDetail() {
     );
   }
 
+  const urlName = encodeURIComponent(chapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
+
   if (currentImageIndex === -1) {
     return (
       <div className="min-h-screen bg-gray-900 text-white" ref={containerRef}>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center mb-8">
-            <button 
-              onClick={() => window.history.back()}
+            <Link 
+              to={`/comic/${urlName}`}
+              state={{ comicId: chapter.comic_info.id }}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
               Quay lại
-            </button>
+            </Link>
           </div>
           
           <div className="max-w-2xl mx-auto text-center">
