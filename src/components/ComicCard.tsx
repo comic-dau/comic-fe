@@ -6,8 +6,10 @@ interface ComicCardProps {
 }
 
 export function ComicCard({ comic }: ComicCardProps) {
+  const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
+
   return (
-    <Link to={`/comic/${comic.id}`} className="group">
+    <Link to={`/comic/${urlName}`} state={{ comicId: comic.id }} className="group">
       <div className="relative overflow-hidden rounded-lg">
         <img
           src={`https://${comic.image}`}
