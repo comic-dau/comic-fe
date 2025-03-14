@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Comic } from '../types/comic';
 import { ComicCard } from '../components/ComicCard';
 import { FeaturedSlider } from '../components/FeaturedSlider';
@@ -10,12 +10,8 @@ export function Home() {
   const [comics, setComics] = useState<Comic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchedRef = useRef(false); // ✅ Ngăn gọi API hai lần
 
   useEffect(() => {
-    if (fetchedRef.current) return; // Nếu đã fetch thì bỏ qua
-    fetchedRef.current = true;
-
     const fetchComics = async () => {
       try {
         const response = await fetch(API_URL, { headers: { accept: 'application/json' } });

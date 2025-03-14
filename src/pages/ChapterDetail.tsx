@@ -25,21 +25,24 @@ export function ChapterDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    const fetchChapterData = async () => {
-      if (fetchedRef.current || !chapterId) return;
-      fetchedRef.current = true;
+    if (!chapterId) return;
 
+    const abortController = new AbortController();
+
+    const fetchChapterData = async () => {
       try {
         const [chapterResponse, viewResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/chapter/${chapterId}`),
+          fetch(`${API_BASE_URL}/chapter/${chapterId}`, {
+            signal: abortController.signal
+          }),
           fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
             method: 'PUT',
             headers: {
               'accept': 'application/json'
-            }
+            },
+            signal: abortController.signal
           })
         ]);
 
@@ -58,7 +61,9 @@ export function ChapterDetail() {
         console.log('View response:', viewData);
 
         // Fetch chapter list
-        const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`);
+        const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`, {
+          signal: abortController.signal
+        });
         if (!chaptersResponse.ok) {
           throw new Error('Failed to fetch chapter list');
         }
@@ -67,24 +72,28 @@ export function ChapterDetail() {
         
         setError(null);
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         setError('Error loading chapter. Please try again later.');
         console.error('Error fetching chapter:', err);
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchChapterData();
 
     return () => {
-      fetchedRef.current = false;
+      abortController.abort();
     };
   }, [chapterId]);
 
   const navigateToChapter = (targetNumber: number) => {
     const targetChapter = chapterList.find(ch => ch.number === targetNumber);
     if (targetChapter) {
-      fetchedRef.current = false; // Reset the fetch flag when navigating
       const urlName = encodeURIComponent(targetChapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
       navigate(`/comic/${urlName}/chapter/${targetChapter.number}`, {
         state: { chapterId: targetChapter.id }
@@ -109,6 +118,34 @@ export function ChapterDetail() {
       navigateToChapter(nextChapter.number);
     }
   };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!chapter) return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          setCurrentImageIndex(prev => prev > 0 ? prev - 1 : prev);
+          break;
+        case 'ArrowRight':
+          setCurrentImageIndex(prev => 
+            prev < chapter.src_image.length - 1 ? prev + 1 : prev
+          );
+          break;
+        case 'Home':
+          setCurrentImageIndex(0);
+          break;
+        case 'End':
+          setCurrentImageIndex(chapter.src_image.length - 1);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [chapter]);
 
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
@@ -140,7 +177,7 @@ export function ChapterDetail() {
   }, [chapter]);
 
   const handlePrevImage = () => {
-    setCurrentImageIndex(prev => prev > -1 ? prev - 1 : prev);
+    setCurrentImageIndex(prev => prev > 0 ? prev - 1 : prev);
   };
 
   const handleNextImage = () => {
@@ -192,8 +229,9 @@ export function ChapterDetail() {
             <Link 
               to={`/comic/${urlName}`}
               state={{ comicId: chapter.comic_info.id }}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
+              <ChevronLeft size={20} />
               Quay lại
             </Link>
           </div>
@@ -209,20 +247,25 @@ export function ChapterDetail() {
               >
                 Bắt đầu đọc
               </button>
-              <button 
-                onClick={handlePrevChapter}
-                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!hasPrevChapter}
-              >
-                Chương trước
-              </button>
-              <button 
-                onClick={handleNextChapter}
-                className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!hasNextChapter}
-              >
-                Chương sau
-              </button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={handlePrevChapter}
+                  className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={!hasPrevChapter}
+                >
+                  <ChevronLeft size={20} />
+                  Chương trước
+                </button>
+                <button 
+                  onClick={handleNextChapter}
+                  className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={!hasNextChapter}
+                >
+                  Chương sau
+                  <ChevronRight size={20} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -236,16 +279,35 @@ export function ChapterDetail() {
         <div className="container mx-auto flex items-center justify-between">
           <button 
             onClick={() => setCurrentImageIndex(-1)}
-            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
           >
+            <ChevronLeft size={16} />
             Quay lại
           </button>
           <div className="text-center">
             <h1 className="text-sm font-bold">{chapter.comic_info.name}</h1>
             <p className="text-xs">Chapter {chapter.number}</p>
           </div>
-          <div className="text-xs">
-            {currentImageIndex + 1}/{chapter.src_image.length}
+          <div className="flex items-center gap-4">
+            <div className="text-xs">
+              {currentImageIndex + 1}/{chapter.src_image.length}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePrevChapter}
+                disabled={!hasPrevChapter}
+                className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={handleNextChapter}
+                disabled={!hasNextChapter}
+                className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -256,6 +318,7 @@ export function ChapterDetail() {
             src={`https://${chapter.src_image[currentImageIndex]}`}
             alt={`Page ${currentImageIndex + 1}`}
             className="max-w-full max-h-[calc(100vh-6rem)] object-contain"
+            loading="lazy"
           />
         </div>
       </div>
@@ -265,19 +328,21 @@ export function ChapterDetail() {
           <button
             onClick={handlePrevImage}
             disabled={currentImageIndex === 0}
-            className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+            title="Previous page"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={24} />
           </button>
-          <div className="text-xs">
+          <div className="text-sm font-medium">
             {currentImageIndex + 1}/{chapter.src_image.length}
           </div>
           <button
             onClick={handleNextImage}
             disabled={currentImageIndex === chapter.src_image.length - 1}
-            className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+            title="Next page"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={24} />
           </button>
         </div>
       </div>
