@@ -11,8 +11,8 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/comic/:name" element={<ComicDetail />} />
-          <Route path="/comic/:name/chapter/:number" element={<ChapterDetail />} />
+          <Route path="/comic/:name/:id" element={<ComicDetail />} />
+          <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterDetail />} />
         </Routes>
       </div>
     </Router>

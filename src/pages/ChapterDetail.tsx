@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useLocation, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../config/env';
 
@@ -7,6 +7,7 @@ interface Chapter {
   id: number;
   number: number;
   title: string;
+  views: number;
   src_image: string[];
   comic_info: {
     id: number;
@@ -15,10 +16,8 @@ interface Chapter {
 }
 
 export function ChapterDetail() {
-  const { name, number } = useParams();
-  const location = useLocation();
+  const { name, id, number, chapterId } = useParams();
   const navigate = useNavigate();
-  const chapterId = location.state?.chapterId;
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(-1);
@@ -61,7 +60,7 @@ export function ChapterDetail() {
         console.log('View response:', viewData);
 
         // Fetch chapter list
-        const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${parsedData.comic_info.id}`, {
+        const chaptersResponse = await fetch(`${API_BASE_URL}/chapter/?comic=${id}`, {
           signal: abortController.signal
         });
         if (!chaptersResponse.ok) {
@@ -89,15 +88,13 @@ export function ChapterDetail() {
     return () => {
       abortController.abort();
     };
-  }, [chapterId]);
+  }, [chapterId, id]);
 
   const navigateToChapter = (targetNumber: number) => {
     const targetChapter = chapterList.find(ch => ch.number === targetNumber);
     if (targetChapter) {
       const urlName = encodeURIComponent(targetChapter.comic_info.name.toLowerCase().replace(/\s+/g, '-'));
-      navigate(`/comic/${urlName}/chapter/${targetChapter.number}`, {
-        state: { chapterId: targetChapter.id }
-      });
+      navigate(`/comic/${urlName}/${id}/chapter/${targetChapter.number}/${targetChapter.id}`);
     }
   };
 
@@ -118,6 +115,19 @@ export function ChapterDetail() {
       navigateToChapter(nextChapter.number);
     }
   };
+
+  useEffect(() => {
+    const header = document.querySelector('header');
+    if (header) {
+      header.style.display = 'none';
+    }
+
+    return () => {
+      if (header) {
+        header.style.display = '';
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -227,7 +237,7 @@ export function ChapterDetail() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center mb-8">
             <Link 
-              to={`/comic/${urlName}`}
+              to={`/comic/${urlName}/${chapter.comic_info.id}`}
               state={{ comicId: chapter.comic_info.id }}
               className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >

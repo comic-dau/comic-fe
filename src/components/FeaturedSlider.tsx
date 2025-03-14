@@ -81,7 +81,7 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
         <p>{timeAgo(comic.updated_at)}</p>
         <p className="text-gray-200 mb-4 line-clamp-2">{comic.introduction}</p>
         <Link 
-          to={`/comic/${urlName}`}
+          to={`/comic/${urlName}/${comic.id}`}
           state={{ comicId: comic.id }}
           className="inline-block bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors"
         >

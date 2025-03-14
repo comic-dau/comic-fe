@@ -1,12 +1,34 @@
 import { useEffect, useState } from 'react';
-import { useParams, useLocation, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Comic, Chapter } from '../types/comic';
 import { API_BASE_URL } from '../config/env';
+import EyeIcon from '../asset/eye-v1.png'; 
+
+function timeAgo(date: string) {
+  const now = new Date();
+  const updatedDate = new Date(date);
+  const seconds = Math.floor((now.getTime() - updatedDate.getTime()) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return `${interval} năm trước`;
+
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return `${interval} tháng trước`;
+
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return `${interval} ngày trước`;
+
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return `${interval} giờ trước`;
+
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return `${interval} phút trước`;
+
+  return `${seconds} giây trước`;
+}
 
 export function ComicDetail() {
-  const { name } = useParams<{ name: string }>();
-  const location = useLocation();
-  const comicId = location.state?.comicId;
+  const { id } = useParams<{ id: string }>();
   const [comic, setComic] = useState<Comic | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,10 +40,10 @@ export function ComicDetail() {
     const fetchComicData = async () => {
       try {
         const [comicResponse, chaptersResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/comic/${comicId}`, {
+          fetch(`${API_BASE_URL}/comic/${id}`, {
             signal: abortController.signal
           }),
-          fetch(`${API_BASE_URL}/chapter/?comic=${comicId}`, {
+          fetch(`${API_BASE_URL}/chapter/?comic=${id}`, {
             signal: abortController.signal
           })
         ]);
@@ -53,14 +75,14 @@ export function ComicDetail() {
       }
     };
 
-    if (comicId) {
+    if (id) {
       fetchComicData();
     }
 
     return () => {
       abortController.abort();
     };
-  }, [comicId]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -109,8 +131,7 @@ export function ComicDetail() {
                 <p className="text-gray-300 mb-4">Thể loại: {comic.genres}</p>
                 <div className="flex gap-4">
                   <Link 
-                    to={`/comic/${encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'))}/chapter/${chapters[chapters.length-1].number}`}
-                    state={{ chapterId: chapters[chapters.length-1].id }}
+                    to={`/comic/${encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'))}/${comic.id}/chapter/${chapters[chapters.length-1].number}/${chapters[chapters.length-1].id}`}
                   >
                     <button className="bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors">
                       Đọc từ đầu
@@ -139,21 +160,37 @@ export function ComicDetail() {
             {chapters.map((chapter) => {
               const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
               return (
-                <div key={chapter.id} className="py-4 flex justify-between items-center">
+                <div
+                  key={chapter.id}
+                  className="py-4 flex justify-between items-center"
+                >
                   <div>
                     <h3 className="text-lg font-semibold">
                       Chapter {chapter.number}: {chapter.title}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(chapter.updated_at).toLocaleDateString('vi-VN')}
-                    </p>
+                    <div className="flex flex-wrap items-center text-sm text-gray-500 mt-1">
+                      <p className="mr-2">
+                        {new Date(chapter.updated_at).toLocaleDateString(
+                          "vi-VN"
+                        )}
+                      </p>
+                      <div className='flex items-center gap-1'>
+                        <span>{chapter.views}</span>
+                        <img
+                          src={EyeIcon}
+                          width={14}
+                          height={14}
+                          alt=""
+                        />
+                      </div>
+                      <span className="mx-2">•</span>
+                      <span>{timeAgo(chapter.updated_at)}</span>
+                    </div>
                   </div>
-                  <Link 
-                    to={`/comic/${urlName}/chapter/${chapter.number}`}
-                    state={{ chapterId: chapter.id }}
+                  <Link
+                    to={`/comic/${urlName}/${comic.id}/chapter/${chapter.number}/${chapter.id}`}
                   >
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors" 
-                    onClick={() => console.log(`Read comic ${name}`)}>
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                       Đọc ngay
                     </button>
                   </Link>
