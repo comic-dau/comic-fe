@@ -39,11 +39,14 @@ export function ComicDetail() {
 
     const fetchComicData = async () => {
       try {
+        const cookies = localStorage.getItem('cookies') || 'None'; // Retrieve cookies from local storage
         const [comicResponse, chaptersResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/comic/${id}`, {
+            headers: { cookie: cookies },
             signal: abortController.signal
           }),
           fetch(`${API_BASE_URL}/chapter/?comic=${id}`, {
+            headers: { cookie: cookies },
             signal: abortController.signal
           })
         ]);

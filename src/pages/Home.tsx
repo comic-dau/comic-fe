@@ -4,7 +4,6 @@ import { ComicCard } from '../components/ComicCard';
 import { FeaturedSlider } from '../components/FeaturedSlider';
 import { API_BASE_URL } from '../config/env';
 
-const API_URL = `${API_BASE_URL}/comic/`;
 
 export function Home() {
   const [comics, setComics] = useState<Comic[]>([]);
@@ -14,7 +13,26 @@ export function Home() {
   useEffect(() => {
     const fetchComics = async () => {
       try {
-        const response = await fetch(API_URL, { headers: { accept: 'application/json' } });
+        const cookies = localStorage.getItem('cookies') || 'None'; // Retrieve cookies from local storage
+        console.log('cookies', cookies);
+        const response = await fetch(`${API_BASE_URL}/comic/`, {
+          headers: {
+            accept: 'application/json',
+            // cookie: cookies
+          }
+        });
+
+        const response_me = await fetch('https://comic-be.daihiep.click/api/auth/me/', {
+          headers: {
+            // origin: 'https://comic-be.daihiep.click',
+            accept: 'application/json',
+            'cookie': cookies
+          },
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        console.log('response_me', response_me.json());
 
         if (!response.ok) throw new Error('Failed to fetch comics');
 
