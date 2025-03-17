@@ -1,5 +1,6 @@
 import { Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {SRC_GITHUB_PUBLIC_URL} from '../config/env';
 
 export function Header() {
   return (
@@ -12,6 +13,9 @@ export function Header() {
               <Link to="/" className="hover:text-gray-300">THỂ LOẠI</Link>
               <Link to="/" className="hover:text-gray-300">ĐĂNG TRUYỆN</Link>
               <Link to="/" className="hover:text-gray-300">TIN TỨC</Link>
+              <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
+                <img src="src/asset/github-copilot-logo.png" width={30} />
+              </Link>
             </nav>
           </div>
           

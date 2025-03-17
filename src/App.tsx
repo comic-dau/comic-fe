@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { Home } from './pages/Home';
 import { ComicDetail } from './pages/ComicDetail';
 import { ChapterDetail } from './pages/ChapterDetail';
+import { LoginCallback } from './pages/LoginCallback';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/comic/:name/:id" element={<ComicDetail />} />
           <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterDetail />} />
+          <Route path="/login-callback" element={<LoginCallback />} />
         </Routes>
       </div>
     </Router>
