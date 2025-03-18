@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Comic } from '../types/comic';
-import { ComicCard } from '../components/ComicCard';
-import { FeaturedSlider } from '../components/FeaturedSlider';
-import { API_BASE_URL } from '../config/env';
-
+import { useEffect, useState } from "react";
+import { Comic } from "../types/comic";
+import { ComicCard } from "../components/ComicCard";
+import { FeaturedSlider } from "../components/FeaturedSlider";
+import { API_BASE_URL } from "../config/env";
 
 export function Home() {
   const [comics, setComics] = useState<Comic[]>([]);
@@ -13,35 +12,29 @@ export function Home() {
   useEffect(() => {
     const fetchComics = async () => {
       try {
-        const cookies = localStorage.getItem('cookies') || 'None'; // Retrieve cookies from local storage
-        console.log('cookies', cookies);
         const response = await fetch(`${API_BASE_URL}/comic/`, {
           headers: {
-            accept: 'application/json',
-            // cookie: cookies
-          }
-        });
-
-        const response_me = await fetch('https://comic-be.daihiep.click/api/auth/me/', {
-          headers: {
-            // origin: 'https://comic-be.daihiep.click',
-            accept: 'application/json',
-            'cookie': cookies
+            accept: "application/json",
           },
-          method: 'GET',
-          credentials: 'include',
         });
 
-        console.log('response_me', response_me.json());
+        const response_me = await fetch(`${API_BASE_URL}/auth/me/`, {
+          headers: {
+            accept: "application/json",
+          },
+          credentials: "include",
+        });
 
-        if (!response.ok) throw new Error('Failed to fetch comics');
+        console.log("response_me", response_me);
+
+        if (!response.ok) throw new Error("Failed to fetch comics");
 
         const data = await response.json();
         setComics(data);
         setError(null);
       } catch (err) {
-        setError('Error loading comics. Please try again later.');
-        console.error('Error fetching comics:', err);
+        setError("Error loading comics. Please try again later.");
+        console.error("Error fetching comics:", err);
       } finally {
         setLoading(false);
       }
@@ -63,12 +56,14 @@ export function Home() {
   return (
     <main>
       {comics.length > 0 && <FeaturedSlider comics={comics.slice(0, 5)} />}
-      
+
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">MỚI CẬP NHẬT</h2>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {comics.map(comic => <ComicCard key={comic.id} comic={comic} />)}
+          {comics.map((comic) => (
+            <ComicCard key={comic.id} comic={comic} />
+          ))}
         </div>
       </div>
     </main>

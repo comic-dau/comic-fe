@@ -1,6 +1,6 @@
-import { Search, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import {SRC_GITHUB_PUBLIC_URL} from '../config/env';
+import { Search, User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { SRC_GITHUB_PUBLIC_URL } from "../config/env";
 
 export function Header() {
   return (
@@ -8,17 +8,25 @@ export function Header() {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
-            <Link to="/" className="text-xl font-bold">COMIC DH</Link>
+            <Link to="/" className="text-xl font-bold">
+              COMIC DH
+            </Link>
             <nav className="hidden md:flex space-x-4">
-              <Link to="/" className="hover:text-gray-300">THỂ LOẠI</Link>
-              <Link to="/" className="hover:text-gray-300">ĐĂNG TRUYỆN</Link>
-              <Link to="/" className="hover:text-gray-300">TIN TỨC</Link>
+              <Link to="/" className="hover:text-gray-300">
+                THỂ LOẠI
+              </Link>
+              <Link to="/" className="hover:text-gray-300">
+                ĐĂNG TRUYỆN
+              </Link>
+              <Link to="/" className="hover:text-gray-300">
+                TIN TỨC
+              </Link>
               <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
                 <img src="src/asset/github-copilot-logo.png" width={30} />
               </Link>
             </nav>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="relative">
               <input
