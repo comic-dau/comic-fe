@@ -18,15 +18,6 @@ export function Home() {
           },
         });
 
-        const response_me = await fetch(`${API_BASE_URL}/auth/me/`, {
-          headers: {
-            accept: "application/json",
-          },
-          credentials: "include",
-        });
-
-        console.log("response_me", response_me);
-
         if (!response.ok) throw new Error("Failed to fetch comics");
 
         const data = await response.json();
