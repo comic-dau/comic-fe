@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Comic, Chapter } from '../types/comic';
-import { API_BASE_URL } from '../config/env';
-import EyeIcon from '../asset/eye-v1.png'; 
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Comic, Chapter } from "../types/comic";
+import { API_BASE_URL } from "../config/env";
+import EyeIcon from "../asset/eye-v1.png";
 
 function timeAgo(date: string) {
   const now = new Date();
@@ -39,25 +39,28 @@ export function ComicDetail() {
 
     const fetchComicData = async () => {
       try {
-        const cookies = localStorage.getItem('cookies') || 'None'; // Retrieve cookies from local storage
         const [comicResponse, chaptersResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/comic/${id}`, {
-            headers: { cookie: cookies },
-            signal: abortController.signal
+            headers: {
+              accept: "application/json",
+            },
+            signal: abortController.signal,
           }),
           fetch(`${API_BASE_URL}/chapter/?comic=${id}`, {
-            headers: { cookie: cookies },
-            signal: abortController.signal
-          })
+            headers: {
+              accept: "application/json",
+            },
+            signal: abortController.signal,
+          }),
         ]);
 
         if (!comicResponse.ok || !chaptersResponse.ok) {
-          throw new Error('Failed to fetch comic data');
+          throw new Error("Failed to fetch comic data");
         }
 
         const [comicData, chaptersData] = await Promise.all([
           comicResponse.json(),
-          chaptersResponse.json()
+          chaptersResponse.json(),
         ]);
 
         if (!abortController.signal.aborted) {
@@ -66,11 +69,11 @@ export function ComicDetail() {
           setError(null);
         }
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
+        if (err instanceof Error && err.name === "AbortError") {
           return;
         }
-        setError('Error loading comic. Please try again later.');
-        console.error('Error fetching comic:', err);
+        setError("Error loading comic. Please try again later.");
+        console.error("Error fetching comic:", err);
       } finally {
         if (!abortController.signal.aborted) {
           setLoading(false);
@@ -99,9 +102,9 @@ export function ComicDetail() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-red-500 text-center">
-          <p className="text-xl font-semibold">{error || 'Comic not found'}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <p className="text-xl font-semibold">{error || "Comic not found"}</p>
+          <button
+            onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Thử lại
@@ -114,10 +117,12 @@ export function ComicDetail() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
-      <div 
+      <div
         className="relative h-[400px] bg-cover bg-center"
         style={{
-          backgroundImage: `url(https://${encodeURI(comic.background_image || comic.image)})`,
+          backgroundImage: `url(https://${encodeURI(
+            comic.background_image || comic.image
+          )})`,
         }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-60">
@@ -130,11 +135,17 @@ export function ComicDetail() {
               />
               <div className="text-white">
                 <h1 className="text-4xl font-bold mb-2">{comic.name}</h1>
-                <p className="text-gray-300 mb-2">Tác giả: {comic.author_info.name}</p>
+                <p className="text-gray-300 mb-2">
+                  Tác giả: {comic.author_info.name}
+                </p>
                 <p className="text-gray-300 mb-4">Thể loại: {comic.genres}</p>
                 <div className="flex gap-4">
-                  <Link 
-                    to={`/comic/${encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'))}/${comic.id}/chapter/${chapters[chapters.length-1].number}/${chapters[chapters.length-1].id}`}
+                  <Link
+                    to={`/comic/${encodeURIComponent(
+                      comic.name.toLowerCase().replace(/\s+/g, "-")
+                    )}/${comic.id}/chapter/${
+                      chapters[chapters.length - 1].number
+                    }/${chapters[chapters.length - 1].id}`}
                   >
                     <button className="bg-blue-600 px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors">
                       Đọc từ đầu
@@ -161,7 +172,9 @@ export function ComicDetail() {
           <h2 className="text-2xl font-bold mb-4">Danh sách chương</h2>
           <div className="divide-y">
             {chapters.map((chapter) => {
-              const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
+              const urlName = encodeURIComponent(
+                comic.name.toLowerCase().replace(/\s+/g, "-")
+              );
               return (
                 <div
                   key={chapter.id}
@@ -177,14 +190,9 @@ export function ComicDetail() {
                           "vi-VN"
                         )}
                       </p>
-                      <div className='flex items-center gap-1'>
+                      <div className="flex items-center gap-1">
                         <span>{chapter.views}</span>
-                        <img
-                          src={EyeIcon}
-                          width={14}
-                          height={14}
-                          alt=""
-                        />
+                        <img src={EyeIcon} width={14} height={14} alt="" />
                       </div>
                       <span className="mx-2">•</span>
                       <span>{timeAgo(chapter.updated_at)}</span>

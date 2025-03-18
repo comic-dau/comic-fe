@@ -28,33 +28,23 @@ export function ChapterDetail() {
   useEffect(() => {
     if (!chapterId) return;
 
-    // Create an instance of AbortController to control the fetch requests
     const abortController = new AbortController();
 
     const fetchChapterData = async () => {
       try {
-        const cookies = localStorage.getItem("cookies") || "None"; // Retrieve cookies from local storage
         const [chapterResponse, viewResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/chapter/${chapterId}`, {
-            headers: { cookie: cookies },
             signal: abortController.signal, // Associate the request with the AbortController
           }),
           fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
             method: "PUT",
             headers: {
-              origin: "https://comic-be.daihiep.click",
               accept: "application/json",
-              cookie: cookies,
-              "X-CSRFTOKEN":
-                "YIJkWOMIRGccOkWtBeIVDHqzk5pDhoC8EzBEKNKFBp8DtRdqz0C55xtFRzWStAzz",
             },
             credentials: "include",
             signal: abortController.signal, // Associate the request with the AbortController
           }),
         ]);
-
-        console.log("cookies", cookies);
-        // console.log('cookies', headers);
 
         if (!chapterResponse.ok) {
           throw new Error("Failed to fetch chapter data");
@@ -74,7 +64,9 @@ export function ChapterDetail() {
         const chaptersResponse = await fetch(
           `${API_BASE_URL}/chapter/?comic=${id}`,
           {
-            headers: { cookie: cookies },
+            headers: {
+              accept: 'application/json',
+            },
             signal: abortController.signal, // Associate the request with the AbortController
           }
         );

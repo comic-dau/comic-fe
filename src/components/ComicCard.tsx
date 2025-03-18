@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import type { Comic } from '../types/comic';
+import { Link } from "react-router-dom";
+import type { Comic } from "../types/comic";
 
 interface ComicCardProps {
   comic: Comic;
@@ -29,7 +29,9 @@ function timeAgo(date: string) {
 }
 
 export function ComicCard({ comic }: ComicCardProps) {
-  const urlName = encodeURIComponent(comic.name.toLowerCase().replace(/\s+/g, '-'));
+  const urlName = encodeURIComponent(
+    comic.name.toLowerCase().replace(/\s+/g, "-")
+  );
 
   return (
     <Link to={`/comic/${urlName}/${comic.id}`} className="group">
@@ -40,13 +42,14 @@ export function ComicCard({ comic }: ComicCardProps) {
           className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-200"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=500&h=800&fit=crop';
+            target.src =
+              "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=500&h=800&fit=crop";
           }}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-75 p-4">
           <h3 className="text-white font-semibold truncate">{comic.name}</h3>
           <div className="flex flex-wrap items-center text-sm text-gray-300 mt-1">
-            <span>Chapter {comic.last_chapter || '0'}</span>
+            <span>Chapter {comic.last_chapter || "0"}</span>
             <span className="mx-2">•</span>
             <span>{comic.views} views</span>
             <span className="mx-2">•</span>
