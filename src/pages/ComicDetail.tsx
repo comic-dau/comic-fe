@@ -129,7 +129,7 @@ export function ComicDetail() {
           <div className="container mx-auto px-4 h-full flex items-end py-8">
             <div className="flex gap-8">
               <img
-                src={`https://${comic.image}`}
+                src={`https://${comic.preview_image || comic.image}`}
                 alt={comic.name}
                 className="w-48 h-64 object-cover rounded-lg shadow-lg"
               />

@@ -1,34 +1,13 @@
 import { Search, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SRC_GITHUB_PUBLIC_URL, API_BASE_URL } from "../config/env";
-import { useState, useEffect } from "react";
 import { User as UserType } from "../types/user";
 
-export function Header() {
-  const [userInfo, setUserInfo] = useState<UserType | null>(null);
+interface HeaderProps {
+  userInfo: UserType | null;
+}
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const storedUserInfo = localStorage.getItem("userInfo");
-      if (storedUserInfo) {
-        setUserInfo(JSON.parse(storedUserInfo));
-      }
-
-      const response_me = await fetch(`${API_BASE_URL}/auth/me/`, {
-        headers: {
-          accept: "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response_me.ok) {
-        const userData = await response_me.json();
-        setUserInfo(userData);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
+export function Header({ userInfo }: HeaderProps) {
 
   const handleLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/google/`;
@@ -36,11 +15,8 @@ export function Header() {
 
   const handleLogout = async () => {
     window.location.href = `${API_BASE_URL}/auth/logout/`;
-    setUserInfo(null);
     localStorage.removeItem("userInfo");
   };
-
-  console.log(`User data:`, userInfo);
 
   return (
     <header className="bg-gray-900 text-white">

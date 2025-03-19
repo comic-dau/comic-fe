@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import { Comic } from "../types/comic";
-import { ComicCard } from "../components/ComicCard";
-import { FeaturedSlider } from "../components/FeaturedSlider";
-import { API_BASE_URL } from "../config/env";
-import { useNavigate } from "react-router-dom";
-import { User as UserType } from "../types/user";
+import { Comic } from "../../types/comic";
+import { ComicCard } from "../../components/ComicCard";
+import { FeaturedSlider } from "../../components/FeaturedSlider";
+import { API_BASE_URL } from "../../config/env";
 
-export function Home({ userInfo }: { userInfo: UserType | null }) {
+export function AdminHome() {
   const [comics, setComics] = useState<Comic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchComics = async () => {
@@ -49,24 +46,21 @@ export function Home({ userInfo }: { userInfo: UserType | null }) {
 
   return (
     <main>
-      {userInfo?.is_superuser && (
-        <div className="container mx-auto px-4 py-8">
-          <button
-            className="mb-4 px-4 py-2 bg-yellow-500 text-white rounded"
-            onClick={() => navigate('/admin')}
-          >
-            Chuyển sang trang ADMIN
-          </button>
-        </div>
-      )}
       {comics.length > 0 && <FeaturedSlider comics={comics.slice(0, 5)} />}
 
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6">MỚI CẬP NHẬT</h2>
+        <button className="mb-4 px-4 py-2 bg-green-500 text-white rounded">Add Comic</button>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {comics.map((comic) => (
-            <ComicCard key={comic.id} comic={comic} />
+            <div key={comic.id} className="relative">
+              <ComicCard comic={comic} />
+              <div className="absolute top-2 right-2 flex space-x-2">
+                <button className="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
+                <button className="px-2 py-1 bg-red-500 text-white rounded">Delete</button>
+              </div>
+            </div>
           ))}
         </div>
       </div>

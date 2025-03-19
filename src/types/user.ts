@@ -5,4 +5,5 @@ export interface User {
   avatar: string;
   social_id: string;
   provider: string;
+  is_superuser: boolean;
 }
