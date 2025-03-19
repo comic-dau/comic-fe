@@ -33,11 +33,12 @@ export function ComicCard({ comic }: ComicCardProps) {
     comic.name.toLowerCase().replace(/\s+/g, "-")
   );
 
+  const image = comic.preview_image || comic.image;
   return (
     <Link to={`/comic/${urlName}/${comic.id}`} className="group">
       <div className="relative overflow-hidden rounded-lg">
         <img
-          src={`https://${comic.image}`}
+          src={`https://${image}`}
           alt={comic.name}
           className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-200"
           onError={(e) => {

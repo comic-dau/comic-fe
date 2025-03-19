@@ -11,6 +11,7 @@ export interface Comic {
   genres: string;
   introduction: string;
   image: string;
+  preview_image: string;
   background_image?: string;
   views: number;
   total_chapter: number;
