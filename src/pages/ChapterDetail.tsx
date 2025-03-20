@@ -24,6 +24,11 @@ export function ChapterDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+
+  const toggleHeaderVisibility = () => {
+    setIsHeaderVisible((prev) => !prev);
+  };
 
   useEffect(() => {
     if (!chapterId) return;
@@ -308,7 +313,11 @@ export function ChapterDetail() {
             </div>
           ) : (
             <>
-              <div className="fixed top-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 z-10 transition-all duration-300 hover:p-4">
+              <div
+                className={`fixed top-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 z-10 transition-transform duration-300 ${
+                  isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+                }`}
+              >
                 <div className="container mx-auto flex items-center justify-between">
                   <button
                     onClick={() => setCurrentImageIndex(-1)}
@@ -323,39 +332,19 @@ export function ChapterDetail() {
                     </h1>
                     <p className="text-xs">Chapter {chapter?.number}</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-xs">
-                      {currentImageIndex + 1}/{chapter?.src_image.length}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handlePrevChapter}
-                        disabled={!hasPrevChapter}
-                        className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={handleNextChapter}
-                        disabled={!hasNextChapter}
-                        className="p-1 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              <div className="pt-12 pb-12">
-                <div className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-6rem)]">
-                  <img
-                    src={`https://${chapter?.src_image[currentImageIndex]}`}
-                    alt={`Page ${currentImageIndex + 1}`}
-                    className="max-w-full max-h-[calc(100vh-6rem)] object-contain"
-                    loading="lazy"
-                  />
-                </div>
+              <div
+                className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-6rem)]"
+                onClick={toggleHeaderVisibility}
+              >
+                <img
+                  src={`https://${chapter?.src_image[currentImageIndex]}`}
+                  alt={`Page ${currentImageIndex + 1}`}
+                  className="max-w-full max-h-[calc(100vh-56px)] object-contain"
+                  loading="lazy"
+                />
               </div>
 
               <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 transition-all duration-300 hover:p-4">
