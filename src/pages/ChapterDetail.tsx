@@ -178,7 +178,6 @@ export function ChapterDetail() {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [chapter]);
 
-  console.log(containerRef.current);
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
       if (!chapter) return;
@@ -234,6 +233,29 @@ export function ChapterDetail() {
   const hasNextChapter = chapterList.some(
     (ch) => ch.number === (chapter?.number ?? 1) + 1
   );
+
+  useEffect(() => {
+    const renderImageOnCanvas = () => {
+      if (!chapter || currentImageIndex === -1) return;
+
+      const canvas = document.getElementById("imageCanvas") as HTMLCanvasElement;
+      if (!canvas) return;
+
+      const context = canvas.getContext("2d");
+      if (!context) return;
+
+      const image = new Image();
+      image.src = `https://${chapter.src_image[currentImageIndex]}`;
+      image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      };
+    };
+
+    renderImageOnCanvas();
+  }, [chapter, currentImageIndex]);
 
   return (
     <>
@@ -339,12 +361,11 @@ export function ChapterDetail() {
                 className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-6rem)]"
                 onClick={toggleHeaderVisibility}
               >
-                <img
-                  src={`https://${chapter?.src_image[currentImageIndex]}`}
-                  alt={`Page ${currentImageIndex + 1}`}
+                <canvas
+                  id="imageCanvas"
                   className="max-w-full max-h-[calc(100vh-56px)] object-contain"
-                  loading="lazy"
-                />
+                  onContextMenu={(e) => e.preventDefault()}
+                ></canvas>
               </div>
 
               <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 transition-all duration-300 hover:p-4">
