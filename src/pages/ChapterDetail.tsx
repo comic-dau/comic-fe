@@ -2,18 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { API_BASE_URL } from "../config/env";
-
-interface Chapter {
-  id: number;
-  number: number;
-  title: string;
-  views: number;
-  src_image: string[];
-  comic_info: {
-    id: number;
-    name: string;
-  };
-}
+import type { Chapter } from "../types/chapter";
 
 export function ChapterDetail() {
   const { name, id, number, chapterId } = useParams();
@@ -25,6 +14,7 @@ export function ChapterDetail() {
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const toggleHeaderVisibility = () => {
     setIsHeaderVisible((prev) => !prev);
@@ -39,7 +29,7 @@ export function ChapterDetail() {
       try {
         const [chapterResponse, viewResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/chapter/${chapterId}`, {
-            signal: abortController.signal, // Associate the request with the AbortController
+            signal: abortController.signal,
           }),
           fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
             method: "PUT",
@@ -47,7 +37,7 @@ export function ChapterDetail() {
               accept: "application/json",
             },
             credentials: "include",
-            signal: abortController.signal, // Associate the request with the AbortController
+            signal: abortController.signal,
           }),
         ]);
 
@@ -72,7 +62,7 @@ export function ChapterDetail() {
             headers: {
               accept: 'application/json',
             },
-            signal: abortController.signal, // Associate the request with the AbortController
+            signal: abortController.signal,
           }
         );
         if (!chaptersResponse.ok) {
@@ -84,7 +74,7 @@ export function ChapterDetail() {
         setError(null);
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
-          return; // Request was aborted, no need to handle the error
+          return;
         }
         setError("Error loading chapter. Please try again later.");
         console.error("Error fetching chapter:", err);
@@ -235,26 +225,63 @@ export function ChapterDetail() {
   );
 
   useEffect(() => {
-    const renderImageOnCanvas = () => {
-      if (!chapter || currentImageIndex === -1) return;
+    const loadAndRestoreImage = async () => {
+      if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
-      const canvas = document.getElementById("imageCanvas") as HTMLCanvasElement;
-      if (!canvas) return;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-      const context = canvas.getContext("2d");
-      if (!context) return;
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = `https://${chapter.src_image[currentImageIndex]}`;
+        });
 
-      const image = new Image();
-      image.src = `https://${chapter.src_image[currentImageIndex]}`;
-      image.onload = () => {
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      };
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const w = Math.floor(img.width / 4);
+        const h = Math.floor(img.height / 4);
+        
+        const indices = [0, 7, 6, 2, 13, 12, 9, 1, 10, 15, 4, 5, 8, 11, 14, 3];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const parts: { x: any; y: any; }[] = [];
+        
+        for (let j = 0; j < 4; j++) {
+          for (let i = 0; i < 4; i++) {
+            parts.push({ x: i * w, y: j * h });
+          }
+        }
+
+        const restoreIndices = new Array(indices.length);
+        indices.forEach((val, idx) => restoreIndices[val] = idx);
+
+        ctx.imageSmoothingEnabled = false;
+        restoreIndices.forEach((origIdx, newIdx) => {
+          const { x: sx, y: sy } = parts[origIdx];
+          const { x: dx, y: dy } = parts[newIdx];
+          ctx.drawImage(img, sx, sy, w, h, dx, dy, w, h);
+        });
+      } catch (err) {
+        console.error('Error loading or restoring image:', err);
+        // On error, display original image
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = `https://${chapter.src_image[currentImageIndex]}`;
+      }
     };
 
-    renderImageOnCanvas();
+    loadAndRestoreImage();
   }, [chapter, currentImageIndex]);
 
   return (
@@ -362,10 +389,10 @@ export function ChapterDetail() {
                 onClick={toggleHeaderVisibility}
               >
                 <canvas
-                  id="imageCanvas"
+                  ref={canvasRef}
                   className="max-w-full max-h-[calc(100vh-56px)] object-contain"
                   onContextMenu={(e) => e.preventDefault()}
-                ></canvas>
+                />
               </div>
 
               <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 transition-all duration-300 hover:p-4">
