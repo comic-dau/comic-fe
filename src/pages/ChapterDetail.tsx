@@ -1,138 +1,33 @@
-import { useEffect, useState, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useRef, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { API_BASE_URL } from "../config/env";
-import type { Chapter } from "../types/chapter";
+import { useChapterData } from "../hooks/useChapterData";
+import { useChapterNavigation } from "../hooks/useChapterNavigation";
+import { useImageNavigation } from "../hooks/useImageNavigation";
+import { restoreShuffledImage, loadOriginalImage } from "../utils/imageUtils";
 
 export function ChapterDetail() {
   const { name, id, number, chapterId } = useParams();
-  const navigate = useNavigate();
-  const [chapter, setChapter] = useState<Chapter | null>(null);
-  const [chapterList, setChapterList] = useState<Chapter[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(-1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const toggleHeaderVisibility = () => {
-    setIsHeaderVisible((prev) => !prev);
-  };
-
-  useEffect(() => {
-    if (!chapterId) return;
-
-    const abortController = new AbortController();
-
-    const fetchChapterData = async () => {
-      try {
-        const [chapterResponse, viewResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/chapter/${chapterId}`, {
-            signal: abortController.signal,
-          }),
-          fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
-            method: "PUT",
-            headers: {
-              accept: "application/json",
-            },
-            credentials: "include",
-            signal: abortController.signal,
-          }),
-        ]);
-
-        if (!chapterResponse.ok) {
-          throw new Error("Failed to fetch chapter data");
-        }
-
-        const data = await chapterResponse.json();
-        const parsedData = {
-          ...data,
-          src_image: JSON.parse(data.src_image.replace(/'/g, '"')),
-        };
-        setChapter(parsedData);
-
-        const viewData = await viewResponse.json();
-        console.log("View response:", viewData);
-
-        // Fetch chapter list
-        const chaptersResponse = await fetch(
-          `${API_BASE_URL}/chapter/?comic=${id}`,
-          {
-            headers: {
-              accept: 'application/json',
-            },
-            signal: abortController.signal,
-          }
-        );
-        if (!chaptersResponse.ok) {
-          throw new Error("Failed to fetch chapter list");
-        }
-        const chaptersData = await chaptersResponse.json();
-        setChapterList(chaptersData);
-
-        setError(null);
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") {
-          return;
-        }
-        setError("Error loading chapter. Please try again later.");
-        console.error("Error fetching chapter:", err);
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchChapterData();
-
-    // Cleanup function to abort the fetch requests if the component unmounts
-    return () => {
-      abortController.abort();
-    };
-  }, [chapterId, id]);
-
-  const navigateToChapter = (targetNumber: number) => {
-    const targetChapter = chapterList.find((ch) => ch.number === targetNumber);
-    if (targetChapter) {
-      const urlName = encodeURIComponent(
-        targetChapter.comic_info.name.toLowerCase().replace(/\s+/g, "-")
-      );
-      navigate(
-        `/comic/${urlName}/${id}/chapter/${targetChapter.number}/${targetChapter.id}`
-      );
-    }
-  };
-
-  const handlePrevChapter = () => {
-    if (!chapter) return;
-    const currentNumber = chapter.number;
-    const prevChapter = chapterList.find(
-      (ch) => ch.number === currentNumber - 1
-    );
-    if (prevChapter) {
-      navigateToChapter(prevChapter.number);
-    }
-  };
-
-  const handleNextChapter = () => {
-    if (!chapter) return;
-    const currentNumber = chapter.number;
-    const nextChapter = chapterList.find(
-      (ch) => ch.number === currentNumber + 1
-    );
-    if (nextChapter) {
-      navigateToChapter(nextChapter.number);
-    }
-  };
+  
+  const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
+  const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
+  const {
+    currentImageIndex,
+    isHeaderVisible,
+    toggleHeaderVisibility,
+    handlePrevImage,
+    handleNextImage,
+    startReading,
+    setCurrentImageIndex,
+  } = useImageNavigation(chapter, containerRef);
 
   useEffect(() => {
     const header = document.querySelector("header");
     if (header) {
       header.style.display = "none";
     }
-
     return () => {
       if (header) {
         header.style.display = "";
@@ -141,78 +36,45 @@ export function ChapterDetail() {
   }, []);
 
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!chapter) return;
+    const preloadImages = async () => {
+      if (!chapter || !canvasRef.current) return;
 
-      switch (e.key) {
-        case "ArrowLeft":
-          setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : prev));
-          break;
-        case "ArrowRight":
-          setCurrentImageIndex((prev) =>
-            prev < chapter.src_image.length - 1 ? prev + 1 : prev
-          );
-          break;
-        case "Home":
-          setCurrentImageIndex(0);
-          break;
-        case "End":
-          setCurrentImageIndex(chapter.src_image.length - 1);
-          break;
-        default:
-          break;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      for (const imageUrl of chapter.src_image) {
+        try {
+          await restoreShuffledImage(ctx, canvas, imageUrl);
+        } catch (err) {
+          console.error('Error preloading image:', err);
+        }
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    if (chapter) {
+      preloadImages();
+    }
   }, [chapter]);
 
   useEffect(() => {
-    const handleScroll = (e: WheelEvent) => {
-      if (!chapter) return;
+    const loadAndRestoreImage = async () => {
+      if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
-      e.preventDefault();
-      if (e.deltaY > 0) {
-        // Scroll down - next image
-        setCurrentImageIndex((prev) => {
-          if (prev === -1) return 0;
-          return prev < chapter.src_image.length - 1 ? prev + 1 : prev;
-        });
-      } else {
-        // Scroll up - previous image
-        setCurrentImageIndex((prev) => (prev > -1 ? prev - 1 : prev));
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      try {
+        await restoreShuffledImage(ctx, canvas, chapter.src_image[currentImageIndex]);
+      } catch (err) {
+        console.error('Error loading or restoring image:', err);
+        loadOriginalImage(ctx, canvas, chapter.src_image[currentImageIndex]);
       }
     };
 
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("wheel", handleScroll, { passive: false });
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("wheel", handleScroll);
-      }
-    };
-  }, [chapter, containerRef]);
-
-  const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  };
-
-  const handleNextImage = () => {
-    if (!chapter) return;
-    setCurrentImageIndex((prev) => {
-      if (prev === -1) return 0;
-      return prev < chapter.src_image.length - 1 ? prev + 1 : prev;
-    });
-  };
-
-  const startReading = () => {
-    console.log(`Start reading ${name} - Chapter ${number}`);
-    setCurrentImageIndex(0);
-  };
+    loadAndRestoreImage();
+  }, [chapter, currentImageIndex]);
 
   const urlName = encodeURIComponent(
     chapter?.comic_info.name.toLowerCase().replace(/\s+/g, "-") ?? ""
@@ -224,66 +86,8 @@ export function ChapterDetail() {
     (ch) => ch.number === (chapter?.number ?? 1) + 1
   );
 
-  useEffect(() => {
-    const loadAndRestoreImage = async () => {
-      if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
-
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = `https://${chapter.src_image[currentImageIndex]}`;
-        });
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        const w = Math.floor(img.width / 4);
-        const h = Math.floor(img.height / 4);
-        
-        const indices = [0, 7, 6, 2, 13, 12, 9, 1, 10, 15, 4, 5, 8, 11, 14, 3];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const parts: { x: any; y: any; }[] = [];
-        
-        for (let j = 0; j < 4; j++) {
-          for (let i = 0; i < 4; i++) {
-            parts.push({ x: i * w, y: j * h });
-          }
-        }
-
-        const restoreIndices = new Array(indices.length);
-        indices.forEach((val, idx) => restoreIndices[val] = idx);
-
-        ctx.imageSmoothingEnabled = false;
-        restoreIndices.forEach((origIdx, newIdx) => {
-          const { x: sx, y: sy } = parts[origIdx];
-          const { x: dx, y: dy } = parts[newIdx];
-          ctx.drawImage(img, sx, sy, w, h, dx, dy, w, h);
-        });
-      } catch (err) {
-        console.error('Error loading or restoring image:', err);
-        // On error, display original image
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-        };
-        img.src = `https://${chapter.src_image[currentImageIndex]}`;
-      }
-    };
-
-    loadAndRestoreImage();
-  }, [chapter, currentImageIndex]);
-
+  console.log(`Start reading ${name} - Chapter ${number}`);
+  
   return (
     <>
       {loading && (
@@ -341,7 +145,7 @@ export function ChapterDetail() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <button
-                      onClick={handlePrevChapter}
+                      onClick={() => chapter && handlePrevChapter(chapter)}
                       className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       disabled={!hasPrevChapter}
                     >
@@ -349,7 +153,7 @@ export function ChapterDetail() {
                       Chương trước
                     </button>
                     <button
-                      onClick={handleNextChapter}
+                      onClick={() => chapter && handleNextChapter(chapter)}
                       className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       disabled={!hasNextChapter}
                     >
