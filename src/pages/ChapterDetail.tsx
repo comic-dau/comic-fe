@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useChapterData } from "../hooks/useChapterData";
 import { useChapterNavigation } from "../hooks/useChapterNavigation";
 import { useImageNavigation } from "../hooks/useImageNavigation";
-import { restoreShuffledImage, loadOriginalImage } from "../utils/imageUtils";
+import { useImagePreloader, getPreloadedImage } from "../utils/imageUtils";
 
 export function ChapterDetail() {
   const { name, id, number, chapterId } = useParams();
@@ -12,6 +12,7 @@ export function ChapterDetail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
+  const { isLoading: isLoadingImages, progress } = useImagePreloader(chapter?.src_image);
   const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
   const {
     currentImageIndex,
@@ -36,44 +37,18 @@ export function ChapterDetail() {
   }, []);
 
   useEffect(() => {
-    const preloadImages = async () => {
-      if (!chapter || !canvasRef.current) return;
+    if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      for (const imageUrl of chapter.src_image) {
-        try {
-          await restoreShuffledImage(ctx, canvas, imageUrl);
-        } catch (err) {
-          console.error('Error preloading image:', err);
-        }
-      }
-    };
-
-    if (chapter) {
-      preloadImages();
+    const preloadedCanvas = getPreloadedImage(chapter.src_image[currentImageIndex]);
+    if (preloadedCanvas) {
+      canvas.width = preloadedCanvas.width;
+      canvas.height = preloadedCanvas.height;
+      ctx.drawImage(preloadedCanvas, 0, 0);
     }
-  }, [chapter]);
-
-  useEffect(() => {
-    const loadAndRestoreImage = async () => {
-      if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
-
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      try {
-        await restoreShuffledImage(ctx, canvas, chapter.src_image[currentImageIndex]);
-      } catch (err) {
-        console.error('Error loading or restoring image:', err);
-        loadOriginalImage(ctx, canvas, chapter.src_image[currentImageIndex]);
-      }
-    };
-
-    loadAndRestoreImage();
   }, [chapter, currentImageIndex]);
 
   const urlName = encodeURIComponent(
@@ -87,15 +62,27 @@ export function ChapterDetail() {
   );
 
   console.log(`Start reading ${name} - Chapter ${number}`);
+  const isInitialLoading = loading || (chapter && isLoadingImages);
   
   return (
     <>
-      {loading && (
-        <div className="flex items-center justify-center min-h-screen bg-gray-900">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      {isInitialLoading && (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+          {isLoadingImages && (
+            <div className="text-white text-center">
+              <p>Đang tải ảnh... {progress}%</p>
+              <div className="w-64 h-2 bg-gray-700 rounded-full mt-2">
+                <div 
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       )}
-      {(error || !chapter) && !loading && (
+      {(error || !chapter) && !isInitialLoading && (
         <div className="flex items-center justify-center min-h-screen bg-gray-900">
           <div className="text-red-500 text-center">
             <p className="text-xl font-semibold">
@@ -111,8 +98,8 @@ export function ChapterDetail() {
         </div>
       )}
 
-      <div className={`min-h-screen bg-gray-900 text-white ${(!loading && chapter) ? "" : "hidden"}`} ref={containerRef}>
-        {!loading &&
+      <div className={`min-h-screen bg-gray-900 text-white ${(!isInitialLoading && chapter) ? "" : "hidden"}`} ref={containerRef}>
+        {!isInitialLoading &&
           chapter &&
           (currentImageIndex === -1 ? (
             <div className="container mx-auto px-4 py-8">
