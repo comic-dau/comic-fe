@@ -63,7 +63,20 @@ export function ChapterDetail() {
 
   console.log(`Start reading ${name} - Chapter ${number}`);
   const isInitialLoading = loading || (chapter && isLoadingImages);
-  
+
+  function handel_mouse_click_image(e: React.MouseEvent<HTMLDivElement>) {
+    const containerWidth = e.currentTarget.offsetWidth;
+    const clickX = e.clientX;
+
+    if (clickX < containerWidth / 3) {
+      handleNextImage();
+    } else if (clickX > (2 * containerWidth) / 3) {
+      handlePrevImage();
+    } else {
+      toggleHeaderVisibility();
+    }
+  }
+
   return (
     <>
       {isInitialLoading && (
@@ -176,21 +189,23 @@ export function ChapterDetail() {
               </div>
 
               <div
-                className="container mx-auto px-4 flex justify-center items-center min-h-[calc(100vh-6rem)]"
-                onClick={toggleHeaderVisibility}
+                className="container mx-auto flex justify-center items-center min-h-[calc(100vh-2.5rem)]"
+                onClick={(e) => handel_mouse_click_image(e)}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full max-h-[calc(100vh-56px)] object-contain"
-                  onContextMenu={(e) => e.preventDefault()}
+                  className="max-w-full max-h-[calc(100vh-40px)] object-contain"
                 />
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm p-2 transition-all duration-300 hover:p-4">
+              <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm transition-all duration-300 hover:p-4">
                 <div className="container mx-auto flex justify-center items-center gap-4">
                   <button
-                    onClick={handlePrevImage}
-                    disabled={currentImageIndex === 0}
+                    onClick={handleNextImage}
+                    disabled={
+                      currentImageIndex === (chapter?.src_image.length ?? 1) - 1
+                    }
                     className="p-2 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
                     title="Previous page"
                   >
@@ -200,10 +215,8 @@ export function ChapterDetail() {
                     {currentImageIndex + 1}/{chapter?.src_image.length}
                   </div>
                   <button
-                    onClick={handleNextImage}
-                    disabled={
-                      currentImageIndex === (chapter?.src_image.length ?? 1) - 1
-                    }
+                    onClick={handlePrevImage}
+                    disabled={currentImageIndex === 0}
                     className="p-2 bg-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
                     title="Next page"
                   >
