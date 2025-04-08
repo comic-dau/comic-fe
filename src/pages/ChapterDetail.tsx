@@ -64,7 +64,7 @@ export function ChapterDetail() {
   console.log(`Start reading ${name} - Chapter ${number}`);
   const isInitialLoading = loading || (chapter && isLoadingImages);
 
-  function handel_mouse_click_image(e: React.MouseEvent<HTMLDivElement>) {
+  function handelMouseClickImage(e: React.MouseEvent<HTMLDivElement>) {
     const containerWidth = e.currentTarget.offsetWidth;
     const clickX = e.clientX;
 
@@ -189,17 +189,21 @@ export function ChapterDetail() {
               </div>
 
               <div
-                className="container mx-auto flex justify-center items-center min-h-[calc(100vh-2.5rem)]"
-                onClick={(e) => handel_mouse_click_image(e)}
+                className="mx-auto flex justify-center items-center min-h-[calc(100vh-2.5rem)]"
+                onClick={(e) => handelMouseClickImage(e)}
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full max-h-[calc(100vh-40px)] object-contain"
+                  className="max-w-full max-h-[calc(100vh-3px)] object-contain"
                 />
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm transition-all duration-300 hover:p-4">
+              <div
+                className={`fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm transition-transform duration-300 hover:p-4 z-10 ${
+                  isHeaderVisible ? "translate-y-0" : "translate-y-full"
+                }`}
+              >
                 <div className="container mx-auto flex justify-center items-center gap-4">
                   <button
                     onClick={handleNextImage}
