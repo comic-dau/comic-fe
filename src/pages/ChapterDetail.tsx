@@ -1,19 +1,24 @@
 import { useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Monitor } from "lucide-react";
 import { useChapterData } from "../hooks/useChapterData";
 import { useChapterNavigation } from "../hooks/useChapterNavigation";
 import { useImageNavigation } from "../hooks/useImageNavigation";
 import { useImagePreloader, getPreloadedImage } from "../utils/imageUtils";
+import { useReadingMode } from "../hooks/useReadingMode";
+import { UIModeSwitcher } from "../components/UIModeSwitcher";
+import { ChapterNavigation } from "../components/ChapterNavigation";
 
 export function ChapterDetail() {
-  const { name, id, number, chapterId } = useParams();
+  const { id, chapterId } = useParams();
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
   const { isLoading: isLoadingImages, progress } = useImagePreloader(chapter?.src_image);
   const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
+  const { setReadingMode } = useReadingMode();
   const {
     currentImageIndex,
     isHeaderVisible,
@@ -24,18 +29,20 @@ export function ChapterDetail() {
     setCurrentImageIndex,
   } = useImageNavigation(chapter, containerRef);
 
-  useEffect(() => {
-    const header = document.querySelector("header");
-    if (header) {
-      header.style.display = "none";
-    }
-    return () => {
-      if (header) {
-        header.style.display = "";
-      }
-    };
-  }, []);
+  // Header đã được ẩn trong ChapterRouter
 
+  // Chuyển đến chế độ Classic
+  const switchToClassicMode = () => {
+    if (chapter && id && chapterId) {
+      setReadingMode('classic');
+      const urlName = encodeURIComponent(
+        chapter.comic_info.name.toLowerCase().replace(/\\s+/g, "-")
+      );
+      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`);
+    }
+  };
+
+  // Hiển thị ảnh trong canvas
   useEffect(() => {
     if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
@@ -52,7 +59,7 @@ export function ChapterDetail() {
   }, [chapter, currentImageIndex]);
 
   const urlName = encodeURIComponent(
-    chapter?.comic_info.name.toLowerCase().replace(/\s+/g, "-") ?? ""
+    chapter?.comic_info.name.toLowerCase().replace(/\\s+/g, "-") ?? ""
   );
   const hasPrevChapter = chapterList.some(
     (ch) => ch.number === (chapter?.number ?? 1) - 1
@@ -61,10 +68,9 @@ export function ChapterDetail() {
     (ch) => ch.number === (chapter?.number ?? 1) + 1
   );
 
-  console.log(`Start reading ${name} - Chapter ${number}`);
   const isInitialLoading = loading || (chapter && isLoadingImages);
 
-  function handel_mouse_click_image(e: React.MouseEvent<HTMLDivElement>) {
+  function handelMouseClickImage(e: React.MouseEvent<HTMLDivElement>) {
     const containerWidth = e.currentTarget.offsetWidth;
     const clickX = e.clientX;
 
@@ -86,8 +92,8 @@ export function ChapterDetail() {
             <div className="text-white text-center">
               <p>Đang tải ảnh... {progress}%</p>
               <div className="w-64 h-2 bg-gray-700 rounded-full mt-2">
-                <div 
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -136,6 +142,12 @@ export function ChapterDetail() {
                 </h2>
 
                 <div className="space-y-4">
+                  <UIModeSwitcher
+                    currentMode="phone"
+                    onSwitchToPhone={() => {}}
+                    onSwitchToClassic={switchToClassicMode}
+                  />
+
                   <button
                     onClick={startReading}
                     className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg font-semibold"
@@ -143,23 +155,16 @@ export function ChapterDetail() {
                     Bắt đầu đọc
                   </button>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => chapter && handlePrevChapter(chapter)}
-                      className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      disabled={!hasPrevChapter}
-                    >
-                      <ChevronLeft size={20} />
-                      Chương trước
-                    </button>
-                    <button
-                      onClick={() => chapter && handleNextChapter(chapter)}
-                      className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      disabled={!hasNextChapter}
-                    >
-                      Chương sau
-                      <ChevronRight size={20} />
-                    </button>
+                  <div className="grid grid-cols-1 gap-4">
+                    {chapter && (
+                      <ChapterNavigation
+                        chapter={chapter}
+                        hasPrevChapter={hasPrevChapter}
+                        hasNextChapter={hasNextChapter}
+                        onPrevChapter={handlePrevChapter}
+                        onNextChapter={handleNextChapter}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -172,34 +177,71 @@ export function ChapterDetail() {
                 }`}
               >
                 <div className="container mx-auto flex items-center justify-between">
-                  <button
-                    onClick={() => setCurrentImageIndex(-1)}
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-                  >
-                    <ChevronLeft size={16} />
-                    Quay lại
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentImageIndex(-1)}
+                      className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+                    >
+                      <ChevronLeft size={14} />
+                      Quay lại
+                    </button>
+
+                    <button
+                      onClick={() => chapter && handlePrevChapter(chapter)}
+                      disabled={!hasPrevChapter}
+                      className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Chương trước"
+                    >
+                      <ChevronLeft size={14} />
+                      Ch. trước
+                    </button>
+
+                    <button
+                      onClick={() => chapter && handleNextChapter(chapter)}
+                      disabled={!hasNextChapter}
+                      className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Chương sau"
+                    >
+                      Ch. sau
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+
                   <div className="text-center">
                     <h1 className="text-sm font-bold">
                       {chapter?.comic_info.name}
                     </h1>
                     <p className="text-xs">Chapter {chapter?.number}</p>
                   </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={switchToClassicMode}
+                      className="p-2 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
+                      title="Chế độ máy tính"
+                    >
+                      <Monitor size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div
-                className="container mx-auto flex justify-center items-center min-h-[calc(100vh-2.5rem)]"
-                onClick={(e) => handel_mouse_click_image(e)}
+                className="mx-auto flex justify-center items-center min-h-[calc(100vh-2.5rem)]"
+                onClick={(e) => handelMouseClickImage(e)}
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full max-h-[calc(100vh-40px)] object-contain"
+                  className="max-w-full max-h-[calc(100vh-3px)] object-contain"
                 />
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm transition-all duration-300 hover:p-4">
+              <div
+                className={`fixed bottom-0 left-0 right-0 bg-gray-800/80 backdrop-blur-sm transition-transform duration-300 hover:p-4 z-10 ${
+                  isHeaderVisible ? "translate-y-0" : "translate-y-full"
+                }`}
+              >
                 <div className="container mx-auto flex justify-center items-center gap-4">
                   <button
                     onClick={handleNextImage}
