@@ -1,19 +1,24 @@
 import { useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Monitor } from "lucide-react";
 import { useChapterData } from "../hooks/useChapterData";
 import { useChapterNavigation } from "../hooks/useChapterNavigation";
 import { useImageNavigation } from "../hooks/useImageNavigation";
 import { useImagePreloader, getPreloadedImage } from "../utils/imageUtils";
+import { useReadingMode } from "../hooks/useReadingMode";
+import { UIModeSwitcher } from "../components/UIModeSwitcher";
+import { ChapterNavigation } from "../components/ChapterNavigation";
 
 export function ChapterDetail() {
-  const { name, id, number, chapterId } = useParams();
+  const { id, chapterId } = useParams();
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
   const { isLoading: isLoadingImages, progress } = useImagePreloader(chapter?.src_image);
   const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
+  const { setReadingMode } = useReadingMode();
   const {
     currentImageIndex,
     isHeaderVisible,
@@ -24,6 +29,7 @@ export function ChapterDetail() {
     setCurrentImageIndex,
   } = useImageNavigation(chapter, containerRef);
 
+  // Ẩn header khi vào trang đọc truyện
   useEffect(() => {
     const header = document.querySelector("header");
     if (header) {
@@ -36,6 +42,18 @@ export function ChapterDetail() {
     };
   }, []);
 
+  // Chuyển đến chế độ Classic
+  const switchToClassicMode = () => {
+    if (chapter && id && chapterId) {
+      setReadingMode('classic');
+      const urlName = encodeURIComponent(
+        chapter.comic_info.name.toLowerCase().replace(/\\s+/g, "-")
+      );
+      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`);
+    }
+  };
+
+  // Hiển thị ảnh trong canvas
   useEffect(() => {
     if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
@@ -52,7 +70,7 @@ export function ChapterDetail() {
   }, [chapter, currentImageIndex]);
 
   const urlName = encodeURIComponent(
-    chapter?.comic_info.name.toLowerCase().replace(/\s+/g, "-") ?? ""
+    chapter?.comic_info.name.toLowerCase().replace(/\\s+/g, "-") ?? ""
   );
   const hasPrevChapter = chapterList.some(
     (ch) => ch.number === (chapter?.number ?? 1) - 1
@@ -61,7 +79,6 @@ export function ChapterDetail() {
     (ch) => ch.number === (chapter?.number ?? 1) + 1
   );
 
-  console.log(`Start reading ${name} - Chapter ${number}`);
   const isInitialLoading = loading || (chapter && isLoadingImages);
 
   function handelMouseClickImage(e: React.MouseEvent<HTMLDivElement>) {
@@ -86,8 +103,8 @@ export function ChapterDetail() {
             <div className="text-white text-center">
               <p>Đang tải ảnh... {progress}%</p>
               <div className="w-64 h-2 bg-gray-700 rounded-full mt-2">
-                <div 
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300" 
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -136,6 +153,12 @@ export function ChapterDetail() {
                 </h2>
 
                 <div className="space-y-4">
+                  <UIModeSwitcher
+                    currentMode="phone"
+                    onSwitchToPhone={() => {}}
+                    onSwitchToClassic={switchToClassicMode}
+                  />
+
                   <button
                     onClick={startReading}
                     className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg font-semibold"
@@ -143,23 +166,16 @@ export function ChapterDetail() {
                     Bắt đầu đọc
                   </button>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={() => chapter && handlePrevChapter(chapter)}
-                      className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      disabled={!hasPrevChapter}
-                    >
-                      <ChevronLeft size={20} />
-                      Chương trước
-                    </button>
-                    <button
-                      onClick={() => chapter && handleNextChapter(chapter)}
-                      className="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      disabled={!hasNextChapter}
-                    >
-                      Chương sau
-                      <ChevronRight size={20} />
-                    </button>
+                  <div className="grid grid-cols-1 gap-4">
+                    {chapter && (
+                      <ChapterNavigation
+                        chapter={chapter}
+                        hasPrevChapter={hasPrevChapter}
+                        hasNextChapter={hasNextChapter}
+                        onPrevChapter={handlePrevChapter}
+                        onNextChapter={handleNextChapter}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -184,6 +200,15 @@ export function ChapterDetail() {
                       {chapter?.comic_info.name}
                     </h1>
                     <p className="text-xs">Chapter {chapter?.number}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={switchToClassicMode}
+                      className="p-2 rounded bg-gray-700 hover:bg-gray-600 transition-colors"
+                      title="Chế độ máy tính"
+                    >
+                      <Monitor size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
