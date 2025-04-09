@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { ComicDetail } from './pages/ComicDetail';
 import { ChapterDetail } from './pages/ChapterDetail';
 import { ChapterClassicView } from './pages/ChapterClassicView';
+import { ChapterRouter } from './pages/ChapterRouter';
 import { AdminHome } from './pages/admin/Home';
 import { API_BASE_URL } from './config/env';
 import { User as UserType } from './types/user';
@@ -42,7 +43,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home userInfo={userInfo} />} />
           <Route path="/comic/:name/:id" element={<ComicDetail />} />
-          <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterDetail />} />
+          <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterRouter />} />
+          <Route path="/comic/:name/:id/chapter/:number/:chapterId/view" element={<ChapterDetail />} />
           <Route path="/comic/:name/:id/chapter/:number/:chapterId/classic" element={<ChapterClassicView />} />
           <Route path="/admin" element={<AdminHome />} />
         </Routes>

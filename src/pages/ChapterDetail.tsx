@@ -29,18 +29,7 @@ export function ChapterDetail() {
     setCurrentImageIndex,
   } = useImageNavigation(chapter, containerRef);
 
-  // Ẩn header khi vào trang đọc truyện
-  useEffect(() => {
-    const header = document.querySelector("header");
-    if (header) {
-      header.style.display = "none";
-    }
-    return () => {
-      if (header) {
-        header.style.display = "";
-      }
-    };
-  }, []);
+  // Header đã được ẩn trong ChapterRouter
 
   // Chuyển đến chế độ Classic
   const switchToClassicMode = () => {
@@ -188,19 +177,43 @@ export function ChapterDetail() {
                 }`}
               >
                 <div className="container mx-auto flex items-center justify-between">
-                  <button
-                    onClick={() => setCurrentImageIndex(-1)}
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
-                  >
-                    <ChevronLeft size={16} />
-                    Quay lại
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentImageIndex(-1)}
+                      className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+                    >
+                      <ChevronLeft size={14} />
+                      Quay lại
+                    </button>
+
+                    <button
+                      onClick={() => chapter && handlePrevChapter(chapter)}
+                      disabled={!hasPrevChapter}
+                      className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Chương trước"
+                    >
+                      <ChevronLeft size={14} />
+                      Ch. trước
+                    </button>
+
+                    <button
+                      onClick={() => chapter && handleNextChapter(chapter)}
+                      disabled={!hasNextChapter}
+                      className="flex items-center gap-1 px-2 py-1 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Chương sau"
+                    >
+                      Ch. sau
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+
                   <div className="text-center">
                     <h1 className="text-sm font-bold">
                       {chapter?.comic_info.name}
                     </h1>
                     <p className="text-xs">Chapter {chapter?.number}</p>
                   </div>
+
                   <div className="flex gap-2">
                     <button
                       onClick={switchToClassicMode}

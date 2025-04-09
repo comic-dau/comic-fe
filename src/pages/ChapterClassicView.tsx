@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+// Không cần import useEffect nữa
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useChapterData } from "../hooks/useChapterData";
 import { useChapterNavigation } from "../hooks/useChapterNavigation";
 import { useReadingMode } from "../hooks/useReadingMode";
@@ -16,18 +16,9 @@ export function ChapterClassicView() {
   const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
   const { setReadingMode } = useReadingMode();
 
-  // Ẩn header khi vào trang đọc truyện
-  useEffect(() => {
-    const header = document.querySelector("header");
-    if (header) {
-      header.style.display = "none";
-    }
-    return () => {
-      if (header) {
-        header.style.display = "";
-      }
-    };
-  }, []);
+  // Header đã được ẩn trong ChapterRouter
+
+  // Không cần tự động chuyển hướng nữa vì đã có ChapterRouter
 
   // Chuyển đến chế độ Phone và chuyển hướng đến trang ChapterDetail
   const switchToPhoneMode = () => {
@@ -36,8 +27,8 @@ export function ChapterClassicView() {
       const urlName = encodeURIComponent(
         chapter.comic_info.name.toLowerCase().replace(/\s+/g, "-")
       );
-      // Chuyển hướng về trang ChapterDetail (không có /classic ở cuối)
-      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}`);
+      // Điều hướng trực tiếp đến trang Phone UI
+      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/view`);
     }
   };
 
@@ -97,13 +88,36 @@ export function ChapterClassicView() {
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <Link
-            to={`/comic/${urlName}/${chapter.comic_info.id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
-            <ChevronLeft size={20} />
-            Quay lại
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/comic/${urlName}/${chapter.comic_info.id}`}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              <ChevronLeft size={20} />
+              Quay lại
+            </Link>
+
+            <button
+              onClick={() => handlePrevChapter(chapter)}
+              disabled={!hasPrevChapter}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Chương trước"
+            >
+              <ChevronLeft size={20} />
+              Chương trước
+            </button>
+
+            <button
+              onClick={() => handleNextChapter(chapter)}
+              disabled={!hasNextChapter}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Chương sau"
+            >
+              Chương sau
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
           <UIModeSwitcher
             currentMode="classic"
             onSwitchToPhone={switchToPhoneMode}
