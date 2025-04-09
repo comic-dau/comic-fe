@@ -34,6 +34,12 @@ export function Header({ userInfo }: HeaderProps) {
                 ĐĂNG TRUYỆN
               </Link>
               <Link to="/" className="hover:text-gray-300">
+                LỊCH SỬ
+              </Link>
+              <Link to="/favorites" className="hover:text-gray-300">
+                YÊU THÍCH
+              </Link>
+              <Link to="/" className="hover:text-gray-300">
                 TIN TỨC
               </Link>
               <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
