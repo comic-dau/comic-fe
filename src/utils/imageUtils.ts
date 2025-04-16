@@ -44,8 +44,8 @@ export const restoreShuffledImage = async (
   const w = Math.floor(img.width / 4);
   const h = Math.floor(img.height / 4);
   
-  // const indices = [0, 7, 6, 2, 13, 12, 9, 1, 10, 15, 4, 5, 8, 11, 14, 3];
-  const indices = [0, 5, 15, 13, 3, 12, 9, 6, 11, 1, 4, 2, 14, 7, 8, 10];
+  const indices = [0, 7, 6, 2, 13, 12, 9, 1, 10, 15, 4, 5, 8, 11, 14, 3];
+  // const indices = [0, 5, 15, 13, 3, 12, 9, 6, 11, 1, 4, 2, 14, 7, 8, 10];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const parts: { x: any; y: any; }[] = [];
   

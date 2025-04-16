@@ -31,24 +31,32 @@ function timeAgo(date: string) {
 }
 
 export function FeaturedSlider({ comics }: FeaturedSliderProps) {
+  // Filter out comics with empty or 0 last_chapter
+  const filteredComics = comics.filter(comic => comic.last_chapter && comic.last_chapter !== 0);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // If no comics remain after filtering, return null
+  if (filteredComics.length === 0) {
+    return null;
+  }
 
   const nextSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentSlide((prev) => (prev + 1) % comics.length);
+    setCurrentSlide((prev) => (prev + 1) % filteredComics.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
   const prevSlide = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setCurrentSlide((prev) => (prev - 1 + comics.length) % comics.length);
+    setCurrentSlide((prev) => (prev - 1 + filteredComics.length) % filteredComics.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  const comic = comics[currentSlide];
+  const comic = filteredComics[currentSlide];
 
   if (!comic) {
     return null;
@@ -64,7 +72,7 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
         className="absolute inset-0 flex transition-transform duration-500 ease-in-out transform"
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
       >
-        {comics.map((comic, index) => (
+        {filteredComics.map((comic, index) => (
           <div key={index} className="w-full flex-shrink-0">
             <img
               src={`https://${comic.image}`}
@@ -110,7 +118,7 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
       </button>
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-        {comics.map((_, index) => (
+        {filteredComics.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}

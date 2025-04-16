@@ -1,6 +1,8 @@
 export interface Author {
   id: number;
   name: string;
+  des?: string;
+  image_avatar?: string;
 }
 
 export interface Comic {

@@ -6,10 +6,16 @@ import { ComicDetail } from './pages/ComicDetail';
 import { ChapterDetail } from './pages/ChapterDetail';
 import { ChapterClassicView } from './pages/ChapterClassicView';
 import { ChapterRouter } from './pages/ChapterRouter';
-import { AdminHome } from './pages/admin/Home';
 import { Favorites } from './pages/Favorites';
+import { AdminLayout } from './pages/admin/AdminLayout';
+import { ComicsManagement } from './pages/admin/ComicsManagement';
+import { AuthorsManagement } from './pages/admin/AuthorsManagement';
+import { ChaptersManagement } from './pages/admin/ChaptersManagement';
 import { API_BASE_URL } from './config/env';
 import { User as UserType } from './types/user';
+import { ModalProvider } from './contexts/ModalContext';
+import { HistoryModalContainer } from './components/HistoryModalContainer';
+import { LoginModalContainer } from './components/LoginModalContainer';
 
 function App() {
   const [userInfo, setUserInfo] = useState<UserType | null>(null);
@@ -39,18 +45,28 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
-        <Header userInfo={userInfo} />
-        <Routes>
-          <Route path="/" element={<Home userInfo={userInfo} />} />
-          <Route path="/favorites" element={<Favorites userInfo={userInfo} />} />
-          <Route path="/comic/:name/:id" element={<ComicDetail />} />
-          <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterRouter />} />
-          <Route path="/comic/:name/:id/chapter/:number/:chapterId/view" element={<ChapterDetail />} />
-          <Route path="/comic/:name/:id/chapter/:number/:chapterId/classic" element={<ChapterClassicView />} />
-          <Route path="/admin" element={<AdminHome />} />
-        </Routes>
-      </div>
+      <ModalProvider>
+        <div className="min-h-screen bg-gray-100">
+          <Header userInfo={userInfo} />
+          <HistoryModalContainer userInfo={userInfo} />
+          <LoginModalContainer />
+          <Routes>
+            <Route path="/" element={<Home userInfo={userInfo} />} />
+            <Route path="/favorites" element={<Favorites userInfo={userInfo} />} />
+            <Route path="/comic/:name/:id" element={<ComicDetail />} />
+            <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterRouter />} />
+            <Route path="/comic/:name/:id/chapter/:number/:chapterId/view" element={<ChapterDetail />} />
+            <Route path="/comic/:name/:id/chapter/:number/:chapterId/classic" element={<ChapterClassicView />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<ComicsManagement />} />
+              <Route path="authors" element={<AuthorsManagement />} />
+              <Route path="chapters" element={<ChaptersManagement />} />
+            </Route>
+          </Routes>
+        </div>
+      </ModalProvider>
     </Router>
   );
 }
