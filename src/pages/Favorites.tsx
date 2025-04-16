@@ -46,7 +46,7 @@ export function Favorites({ userInfo: initialUserInfo }: { userInfo: UserType | 
       try {
         const abortController = new AbortController();
         // const response = await fetch(`${API_BASE_URL}/comic?is_favorite=True`,
-        const response = await fetch(`${API_BASE_URL}/comic?name=co`, {
+        const response = await fetch(`${API_BASE_URL}/comic?is_favorite=True`, {
           headers: {
             accept: "application/json",
           },

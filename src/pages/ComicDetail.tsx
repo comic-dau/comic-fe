@@ -173,10 +173,10 @@ export function ComicDetail() {
               />
               <div className="text-white">
                 <h1 className="text-4xl font-bold mb-2">{comic.name}</h1>
-                <p className="text-gray-300 mb-2">
+                <p className="text-gray-300 mb-2 text-lg font-medium">
                   Tác giả: {comic.author_info.name}
                 </p>
-                <p className="text-gray-300 mb-4">Thể loại: {comic.genres}</p>
+                <p className="text-gray-300 mb-4 text-lg font-medium">Thể loại: {comic.genres}</p>
                 <div className="flex gap-4">
                   <Link
                     to={`/comic/${encodeURIComponent(
@@ -189,9 +189,6 @@ export function ComicDetail() {
                       Đọc từ đầu
                     </button>
                   </Link>
-                  <button className="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors">
-                    Theo dõi
-                  </button>
                   {/* Nút yêu thích */}
                   <button
                     className="px-6 py-2 rounded-full font-semibold text-white transition-colors flex items-center gap-2 bg-pink-600 hover:bg-pink-700"

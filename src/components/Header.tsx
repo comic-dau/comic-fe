@@ -1,13 +1,16 @@
-import { Search, User, Heart } from "lucide-react";
+import { Search, User, Heart, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SRC_GITHUB_PUBLIC_URL, API_BASE_URL } from "../config/env";
 import { User as UserType } from "../types/user";
+import { useModal } from "../contexts/ModalContext";
 
 interface HeaderProps {
   userInfo: UserType | null;
 }
 
 export function Header({ userInfo }: HeaderProps) {
+  const { openHistoryModal } = useModal();
+
   const handleLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/google/`;
   };
@@ -15,6 +18,10 @@ export function Header({ userInfo }: HeaderProps) {
   const handleLogout = async () => {
     window.location.href = `${API_BASE_URL}/auth/logout/`;
     localStorage.removeItem("userInfo");
+  };
+
+  const handleHistoryClick = () => {
+    openHistoryModal();
   };
 
   return (
@@ -42,6 +49,13 @@ export function Header({ userInfo }: HeaderProps) {
                 <Heart className="w-4 h-4" />
                 <span>YÊU THÍCH</span>
               </Link>
+              <button
+                onClick={handleHistoryClick}
+                className="hover:text-gray-300 flex items-center space-x-1"
+              >
+                <History className="w-4 h-4" />
+                <span>LỊCH SỬ</span>
+              </button>
               <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
                 <img src="src/asset/github-copilot-logo.png" width={30} />
               </Link>

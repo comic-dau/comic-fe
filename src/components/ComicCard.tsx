@@ -29,6 +29,11 @@ function timeAgo(date: string) {
 }
 
 export function ComicCard({ comic }: ComicCardProps) {
+  // Don't render comics with empty or 0 last_chapter
+  if (!comic.last_chapter || comic.last_chapter === 0) {
+    return null;
+  }
+
   const urlName = encodeURIComponent(
     comic.name.toLowerCase().replace(/\s+/g, "-")
   );
