@@ -90,6 +90,44 @@ export function ComicDetail() {
     };
   }, [id]);
 
+  const handleFavoriteClick = async () => {
+    const abortController = new AbortController();
+
+    try {
+      // Tạo một đối tượng FormData trống
+      const formData = new FormData();
+      formData.append("comic", comic?.id?.toString() || ""); // ID của comic
+      formData.append("is_favorite", "true");
+  
+      const response = await fetch(`${API_BASE_URL}/user_comic/`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+        },
+        body: formData, // Sử dụng FormData đã tạo
+        credentials: "include",
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          alert("Bạn cần đăng nhập để thực hiện chức năng này.");
+        } else {
+          throw new Error("Failed to add to favorites");
+        }
+      } else {
+        alert("Đã thêm vào danh sách yêu thích!");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        console.log("Request aborted");
+      } else {
+        console.error("Lỗi khi thêm vào danh sách yêu thích:", err);
+        alert("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -153,6 +191,14 @@ export function ComicDetail() {
                   </Link>
                   <button className="bg-gray-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-700 transition-colors">
                     Theo dõi
+                  </button>
+                  {/* Nút yêu thích */}
+                  <button
+                    className="px-6 py-2 rounded-full font-semibold text-white transition-colors flex items-center gap-2 bg-pink-600 hover:bg-pink-700"
+                    onClick={handleFavoriteClick}
+                  >
+                    <span>❤️</span>
+                    <span>Yêu thích</span>
                   </button>
                 </div>
               </div>

@@ -7,6 +7,7 @@ import { ChapterDetail } from './pages/ChapterDetail';
 import { ChapterClassicView } from './pages/ChapterClassicView';
 import { ChapterRouter } from './pages/ChapterRouter';
 import { AdminHome } from './pages/admin/Home';
+import { Favorites } from './pages/Favorites';
 import { API_BASE_URL } from './config/env';
 import { User as UserType } from './types/user';
 
@@ -42,6 +43,7 @@ function App() {
         <Header userInfo={userInfo} />
         <Routes>
           <Route path="/" element={<Home userInfo={userInfo} />} />
+          <Route path="/favorites" element={<Favorites userInfo={userInfo} />} />
           <Route path="/comic/:name/:id" element={<ComicDetail />} />
           <Route path="/comic/:name/:id/chapter/:number/:chapterId" element={<ChapterRouter />} />
           <Route path="/comic/:name/:id/chapter/:number/:chapterId/view" element={<ChapterDetail />} />

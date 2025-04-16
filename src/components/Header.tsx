@@ -1,4 +1,4 @@
-import { Search, User } from "lucide-react";
+import { Search, User, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SRC_GITHUB_PUBLIC_URL, API_BASE_URL } from "../config/env";
 import { User as UserType } from "../types/user";
@@ -8,7 +8,6 @@ interface HeaderProps {
 }
 
 export function Header({ userInfo }: HeaderProps) {
-
   const handleLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/google/`;
   };
@@ -35,6 +34,13 @@ export function Header({ userInfo }: HeaderProps) {
               </Link>
               <Link to="/" className="hover:text-gray-300">
                 TIN TỨC
+              </Link>
+              <Link
+                to="/favorites"
+                className="hover:text-gray-300 flex items-center space-x-1"
+              >
+                <Heart className="w-4 h-4" />
+                <span>YÊU THÍCH</span>
               </Link>
               <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
                 <img src="src/asset/github-copilot-logo.png" width={30} />
