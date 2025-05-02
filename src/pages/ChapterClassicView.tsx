@@ -11,9 +11,20 @@ import { ChapterNavigation } from "../components/ChapterNavigation";
 export function ChapterClassicView() {
   const { id, chapterId } = useParams();
   const navigate = useNavigate();
-  const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
-  const { isLoading: isLoadingImages, progress } = useImagePreloader(chapter?.src_image);
-  const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
+  const { chapter, chapterList, loading, error } = useChapterData(
+    chapterId,
+    id,
+    {
+      view: true,
+    }
+  );
+  const { isLoading: isLoadingImages, progress } = useImagePreloader(
+    chapter?.src_image
+  );
+  const { handlePrevChapter, handleNextChapter } = useChapterNavigation(
+    chapterList,
+    id
+  );
   const { setReadingMode } = useReadingMode();
 
   // Header đã được ẩn trong ChapterRouter
@@ -23,12 +34,14 @@ export function ChapterClassicView() {
   // Chuyển đến chế độ Phone và chuyển hướng đến trang ChapterDetail
   const switchToPhoneMode = () => {
     if (chapter) {
-      setReadingMode('phone');
+      setReadingMode("phone");
       const urlName = encodeURIComponent(
         chapter.comic_info.name.toLowerCase().replace(/\s+/g, "-")
       );
       // Điều hướng trực tiếp đến trang Phone UI
-      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/view`);
+      navigate(
+        `/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/view`
+      );
     }
   };
 

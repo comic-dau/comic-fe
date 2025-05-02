@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
-import type { Chapter } from '../types/chapter';
-import { API_BASE_URL } from '../config/env';
+import { useState, useEffect } from "react";
+import type { Chapter } from "../types/chapter";
+import { API_BASE_URL } from "../config/env";
 
-export const useChapterData = (chapterId: string | undefined, id: string | undefined) => {
+export const useChapterData = (
+  chapterId: string | undefined,
+  id: string | undefined,
+  options?: {
+    view?: boolean;
+  }
+) => {
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,19 +25,26 @@ export const useChapterData = (chapterId: string | undefined, id: string | undef
           fetch(`${API_BASE_URL}/chapter/${chapterId}`, {
             signal: abortController.signal,
           }),
-          fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
-            method: "PUT",
-            headers: {
-              accept: "application/json",
-            },
-            credentials: "include",
-            signal: abortController.signal,
-          }),
+          (async () => {
+            console.log("callt his");
+
+            if (!options?.view) return;
+            return await fetch(`${API_BASE_URL}/chapter/${chapterId}/view/`, {
+              method: "PUT",
+              headers: {
+                accept: "application/json",
+              },
+              credentials: "include",
+              signal: abortController.signal,
+            });
+          })(),
         ]);
 
         if (!chapterResponse.ok) {
           throw new Error("Failed to fetch chapter data");
         }
+
+        console.log(viewResponse);
 
         const data = await chapterResponse.json();
         const parsedData = {
@@ -40,13 +53,14 @@ export const useChapterData = (chapterId: string | undefined, id: string | undef
         };
         setChapter(parsedData);
 
-        console.log(`View response: ${viewResponse.status}`);
+        if (options?.view && viewResponse)
+          console.log(`View response: ${viewResponse.status}`);
 
         const chaptersResponse = await fetch(
           `${API_BASE_URL}/chapter/?comic=${id}`,
           {
             headers: {
-              accept: 'application/json',
+              accept: "application/json",
             },
             signal: abortController.signal,
           }

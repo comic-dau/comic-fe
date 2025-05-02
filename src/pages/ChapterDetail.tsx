@@ -15,9 +15,20 @@ export function ChapterDetail() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { chapter, chapterList, loading, error } = useChapterData(chapterId, id);
-  const { isLoading: isLoadingImages, progress } = useImagePreloader(chapter?.src_image);
-  const { handlePrevChapter, handleNextChapter } = useChapterNavigation(chapterList, id);
+  const { chapter, chapterList, loading, error } = useChapterData(
+    chapterId,
+    id,
+    {
+      view: true,
+    }
+  );
+  const { isLoading: isLoadingImages, progress } = useImagePreloader(
+    chapter?.src_image
+  );
+  const { handlePrevChapter, handleNextChapter } = useChapterNavigation(
+    chapterList,
+    id
+  );
   const { setReadingMode } = useReadingMode();
   const {
     currentImageIndex,
@@ -34,11 +45,13 @@ export function ChapterDetail() {
   // Chuyển đến chế độ Classic
   const switchToClassicMode = () => {
     if (chapter && id && chapterId) {
-      setReadingMode('classic');
+      setReadingMode("classic");
       const urlName = encodeURIComponent(
         chapter.comic_info.name.toLowerCase().replace(/\\s+/g, "-")
       );
-      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`);
+      navigate(
+        `/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`
+      );
     }
   };
 
@@ -47,10 +60,12 @@ export function ChapterDetail() {
     if (!chapter || currentImageIndex === -1 || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const preloadedCanvas = getPreloadedImage(chapter.src_image[currentImageIndex]);
+    const preloadedCanvas = getPreloadedImage(
+      chapter.src_image[currentImageIndex]
+    );
     if (preloadedCanvas) {
       canvas.width = preloadedCanvas.width;
       canvas.height = preloadedCanvas.height;
@@ -117,7 +132,12 @@ export function ChapterDetail() {
         </div>
       )}
 
-      <div className={`min-h-screen bg-gray-900 text-white ${(!isInitialLoading && chapter) ? "" : "hidden"}`} ref={containerRef}>
+      <div
+        className={`min-h-screen bg-gray-900 text-white ${
+          !isInitialLoading && chapter ? "" : "hidden"
+        }`}
+        ref={containerRef}
+      >
         {!isInitialLoading &&
           chapter &&
           (currentImageIndex === -1 ? (

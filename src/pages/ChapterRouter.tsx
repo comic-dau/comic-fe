@@ -10,7 +10,9 @@ export function ChapterRouter() {
   const { id, chapterId } = useParams();
   const navigate = useNavigate();
   const { readingMode } = useReadingMode();
-  const { chapter } = useChapterData(chapterId, id);
+  const { chapter } = useChapterData(chapterId, id, {
+    view: false,
+  });
 
   // Ẩn header ngay khi ChapterRouter được render
   useEffect(() => {
@@ -24,7 +26,7 @@ export function ChapterRouter() {
       // Chỉ hiện lại header khi rời khỏi tất cả các trang chapter
       // Kiểm tra URL hiện tại để biết liệu chúng ta có đang chuyển đến một trang chapter khác hay không
       const currentPath = window.location.pathname;
-      if (!currentPath.includes('/chapter/')) {
+      if (!currentPath.includes("/chapter/")) {
         const header = document.querySelector("header");
         if (header) {
           header.style.display = "";
@@ -41,10 +43,16 @@ export function ChapterRouter() {
       chapter.comic_info.name.toLowerCase().replace(/\\s+/g, "-")
     );
 
-    if (readingMode === 'classic') {
-      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`, { replace: true });
+    if (readingMode === "classic") {
+      navigate(
+        `/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/classic`,
+        { replace: true }
+      );
     } else {
-      navigate(`/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/view`, { replace: true });
+      navigate(
+        `/comic/${urlName}/${id}/chapter/${chapter.number}/${chapterId}/view`,
+        { replace: true }
+      );
     }
   }, [chapter, id, chapterId, readingMode, navigate]);
 
