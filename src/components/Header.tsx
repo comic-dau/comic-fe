@@ -36,12 +36,12 @@ export function Header({ userInfo }: HeaderProps) {
               <Link to="/" className="hover:text-gray-300">
                 THỂ LOẠI
               </Link>
-              <Link to="/" className="hover:text-gray-300">
+              {/* <Link to="/" className="hover:text-gray-300">
                 ĐĂNG TRUYỆN
               </Link>
               <Link to="/" className="hover:text-gray-300">
                 TIN TỨC
-              </Link>
+              </Link> */}
               <Link
                 to="/favorites"
                 className="hover:text-gray-300 flex items-center space-x-1"

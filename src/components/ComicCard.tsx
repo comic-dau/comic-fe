@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Comic } from "../types/comic";
+import { formatImageUrl } from "../utils/imageUtils";
 
 interface ComicCardProps {
   comic: Comic;
@@ -43,7 +44,7 @@ export function ComicCard({ comic }: ComicCardProps) {
     <Link to={`/comic/${urlName}/${comic.id}`} className="group">
       <div className="relative overflow-hidden rounded-lg">
         <img
-          src={`https://${image}`}
+          src={formatImageUrl(image)}
           alt={comic.name}
           className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-200"
           onError={(e) => {

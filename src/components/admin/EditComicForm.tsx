@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Upload } from "lucide-react";
 import { Comic, Author } from "../../types/comic";
 import { API_BASE_URL } from "../../config/env";
+import { formatImageUrl } from "../../utils/imageUtils";
 
 interface EditComicFormProps {
   comic: Comic;
@@ -21,7 +22,7 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Theo dõi các trường đã thay đổi
   const [changedFields, setChangedFields] = useState<Record<string, boolean>>({});
 
@@ -52,10 +53,10 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
   // Thiết lập ảnh xem trước ban đầu
   useEffect(() => {
     if (comic.image) {
-      setImagePreview(`https://${comic.image}`);
+      setImagePreview(formatImageUrl(comic.image));
     }
     if (comic.background_image) {
-      setBackgroundImagePreview(`https://${comic.background_image}`);
+      setBackgroundImagePreview(formatImageUrl(comic.background_image));
     }
   }, [comic]);
 
@@ -73,11 +74,11 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'main' | 'background') => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       if (type === 'main') {
         setImage(file);
         setChangedFields({ ...changedFields, image_upload: true });
-        
+
         // Tạo preview
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -87,7 +88,7 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
       } else if (type === 'background') {
         setBackgroundImage(file);
         setChangedFields({ ...changedFields, background_image_upload: true });
-        
+
         // Tạo preview
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -100,7 +101,7 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Kiểm tra xem có trường nào được thay đổi không
     if (Object.keys(changedFields).length === 0) {
       setError("Không có thông tin nào được thay đổi.");
@@ -112,28 +113,28 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
 
     try {
       const formData = new FormData();
-      
+
       // Chỉ gửi các trường đã thay đổi
       if (changedFields.name) {
         formData.append("name", name);
       }
-      
+
       if (changedFields.author) {
         formData.append("author", authorId);
       }
-      
+
       if (changedFields.genres) {
         formData.append("genres", genres);
       }
-      
+
       if (changedFields.introduction) {
         formData.append("introduction", introduction);
       }
-      
+
       if (changedFields.image_upload && image) {
         formData.append("image_upload", image);
       }
-      
+
       if (changedFields.background_image_upload && backgroundImage) {
         formData.append("background_image_upload", backgroundImage);
       }
@@ -148,7 +149,7 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
       });
 
       const responseData = await response.json();
-      
+
       if (!response.ok) {
         // Xử lý riêng cho lỗi 400 (Bad Request)
         if (response.status === 400) {
@@ -164,9 +165,9 @@ export function EditComicForm({ comic, onUpdateComic, onCancel }: EditComicFormP
         }
         return;
       }
-      
+
       onUpdateComic(responseData);
-      
+
     } catch (err) {
       console.error("Error updating comic:", err);
       setError(err instanceof Error ? err.message : "Không thể cập nhật truyện. Vui lòng thử lại sau.");

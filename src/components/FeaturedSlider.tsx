@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Comic } from "../types/comic";
+import { formatImageUrl } from "../utils/imageUtils";
 
 interface FeaturedSliderProps {
   comics: Comic[];
@@ -75,7 +76,7 @@ export function FeaturedSlider({ comics }: FeaturedSliderProps) {
         {filteredComics.map((comic, index) => (
           <div key={index} className="w-full flex-shrink-0">
             <img
-              src={`https://${comic.image}`}
+              src={formatImageUrl(comic.image)}
               alt={comic.name}
               className="w-full h-full object-cover"
               onError={(e) => {

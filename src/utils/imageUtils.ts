@@ -3,6 +3,19 @@ import { useEffect, useState } from 'react';
 // Cache for storing preloaded images
 const imageCache = new Map<string, HTMLCanvasElement>();
 
+// Utility function to format image URL with correct protocol
+export const formatImageUrl = (imageUrl: string): string => {
+  if (!imageUrl) return '';
+
+  // Nếu URL bắt đầu bằng 'localhost', thêm 'http://'
+  if (imageUrl.startsWith('localhost')) {
+    return `http://${imageUrl}`;
+  }
+
+  // Các URL khác thêm 'https://'
+  return `https://${imageUrl}`;
+};
+
 export const preloadImages = async (imageUrls: string[]): Promise<void> => {
   const loadPromises = imageUrls.map(async (url) => {
     try {
@@ -31,24 +44,24 @@ export const restoreShuffledImage = async (
 ) => {
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  
+
   await new Promise((resolve, reject) => {
     img.onload = resolve;
     img.onerror = reject;
-    img.src = `https://${imageUrl}`;
+    img.src = formatImageUrl(imageUrl);
   });
 
   canvas.width = img.width;
   canvas.height = img.height;
-  
+
   const w = Math.floor(img.width / 4);
   const h = Math.floor(img.height / 4);
-  
+
   const indices = [0, 7, 6, 2, 13, 12, 9, 1, 10, 15, 4, 5, 8, 11, 14, 3];
   // const indices = [0, 5, 15, 13, 3, 12, 9, 6, 11, 1, 4, 2, 14, 7, 8, 10];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const parts: { x: any; y: any; }[] = [];
-  
+
   for (let j = 0; j < 4; j++) {
     for (let i = 0; i < 4; i++) {
       parts.push({ x: i * w, y: j * h });
@@ -78,7 +91,7 @@ export const loadOriginalImage = (
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
   };
-  img.src = `https://${imageUrl}`;
+  img.src = formatImageUrl(imageUrl);
 };
 
 export const useImagePreloader = (imageUrls: string[] | undefined) => {
@@ -105,7 +118,7 @@ export const useImagePreloader = (imageUrls: string[] | undefined) => {
 
           await restoreShuffledImage(ctx, canvas, url);
           imageCache.set(url, canvas);
-          
+
           if (mounted) {
             loaded++;
             setProgress(Math.round((loaded / total) * 100));

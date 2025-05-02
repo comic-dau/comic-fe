@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Upload } from "lucide-react";
 import { Author } from "../../types/comic";
 import { API_BASE_URL } from "../../config/env";
+import { formatImageUrl } from "../../utils/imageUtils";
 
 interface EditAuthorFormProps {
   author: Author;
@@ -20,7 +21,7 @@ export function EditAuthorForm({ author, onUpdateAuthor, onCancel }: EditAuthorF
   // Set initial avatar preview if author has an image
   useEffect(() => {
     if (author.image_avatar) {
-      setAvatarPreview(`https://${author.image_avatar}`);
+      setAvatarPreview(formatImageUrl(author.image_avatar));
     }
   }, [author]);
 

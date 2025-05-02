@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Comic, Chapter } from "../types/comic";
 import { API_BASE_URL } from "../config/env";
 import EyeIcon from "../asset/eye-v1.png";
+import { formatImageUrl } from "../utils/imageUtils";
 
 function timeAgo(date: string) {
   const now = new Date();
@@ -98,7 +99,7 @@ export function ComicDetail() {
       const formData = new FormData();
       formData.append("comic", comic?.id?.toString() || ""); // ID của comic
       formData.append("is_favorite", "true");
-  
+
       const response = await fetch(`${API_BASE_URL}/user_comic/`, {
         method: "POST",
         headers: {
@@ -158,16 +159,16 @@ export function ComicDetail() {
       <div
         className="relative h-[400px] bg-cover bg-center"
         style={{
-          backgroundImage: `url(https://${encodeURI(
+          backgroundImage: `url(${formatImageUrl(encodeURI(
             comic.background_image || comic.image
-          )})`,
+          ))})`,
         }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-60">
           <div className="container mx-auto px-4 h-full flex items-end py-8">
             <div className="flex gap-8">
               <img
-                src={`https://${comic.preview_image || comic.image}`}
+                src={formatImageUrl(comic.preview_image || comic.image)}
                 alt={comic.name}
                 className="w-48 h-64 object-cover rounded-lg shadow-lg"
               />
