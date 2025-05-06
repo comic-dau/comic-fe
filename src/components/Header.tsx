@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { SRC_GITHUB_PUBLIC_URL, API_BASE_URL } from "../config/env";
 import { User as UserType } from "../types/user";
 import { useModal } from "../contexts/ModalContext";
+import icon from '../asset/github-copilot-logo.png'
 
 interface HeaderProps {
   userInfo: UserType | null;
@@ -57,7 +58,7 @@ export function Header({ userInfo }: HeaderProps) {
                 <span>LỊCH SỬ</span>
               </button>
               <Link to={SRC_GITHUB_PUBLIC_URL} className="hover:text-gray-300">
-                <img src="src/asset/github-copilot-logo.png" width={30} />
+                <img src={icon} alt="GitHub Copilot" width={30} height={30} />
               </Link>
             </nav>
           </div>

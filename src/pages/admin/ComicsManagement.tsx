@@ -4,6 +4,7 @@ import { Comic } from "../../types/comic";
 import { API_BASE_URL } from "../../config/env";
 import { AddComicForm } from "../../components/admin/AddComicForm";
 import { EditComicForm } from "../../components/admin/EditComicForm";
+import { formatImageUrl } from "../../utils/imageUtils";
 
 export function ComicsManagement() {
   const [comics, setComics] = useState<Comic[]>([]);
@@ -41,7 +42,7 @@ export function ComicsManagement() {
     fetchComics();
   }, []);
 
-  const handleAddComic = (newComic: Comic) => {
+  const handleAddComic = () => {
     // Tải lại dữ liệu từ server thay vì chỉ thêm vào state
     fetchComics();
     setShowAddForm(false);
@@ -55,7 +56,7 @@ export function ComicsManagement() {
     setShowEditForm(true);
   };
 
-  const handleUpdateComic = (updatedComic: Comic) => {
+  const handleUpdateComic = () => {
     // Tải lại dữ liệu từ server
     fetchComics();
     setShowEditForm(false);
@@ -88,6 +89,7 @@ export function ComicsManagement() {
               alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
             }
           } catch (e) {
+            console.error("Error deleting author:", e);
             alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
           }
         } else {
@@ -211,7 +213,7 @@ export function ComicsManagement() {
                     <div className="flex-shrink-0 h-10 w-10">
                       <img
                         className="h-10 w-10 rounded-md object-cover"
-                        src={`https://${comic.image}`}
+                        src={formatImageUrl(comic.image)}
                         alt={comic.name}
                       />
                     </div>

@@ -4,6 +4,7 @@ import { API_BASE_URL } from "../../config/env";
 import { AddAuthorForm } from "../../components/admin/AddAuthorForm";
 import { EditAuthorForm } from "../../components/admin/EditAuthorForm";
 import { Author } from "../../types/comic";
+import { formatImageUrl } from "../../utils/imageUtils";
 
 export function AuthorsManagement() {
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -41,7 +42,17 @@ export function AuthorsManagement() {
     fetchAuthors();
   }, []);
 
-  const handleAddAuthor = (newAuthor: Author) => {
+  // Debug: Log authors data to check image_avatar values
+  useEffect(() => {
+    if (authors.length > 0) {
+      console.log("Authors data:", authors);
+      authors.forEach(author => {
+        console.log(`Author ${author.name} image_avatar:`, author.image_avatar);
+      });
+    }
+  }, [authors]);
+
+  const handleAddAuthor = () => {
     // Tải lại dữ liệu từ server thay vì chỉ thêm vào state
     fetchAuthors();
     setShowAddForm(false);
@@ -55,7 +66,7 @@ export function AuthorsManagement() {
     setShowEditForm(true);
   };
 
-  const handleUpdateAuthor = (updatedAuthor: Author) => {
+  const handleUpdateAuthor = () => {
     // Tải lại dữ liệu từ server
     fetchAuthors();
     setShowEditForm(false);
@@ -88,6 +99,7 @@ export function AuthorsManagement() {
               alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
             }
           } catch (e) {
+            console.log("Error parsing error response:", e);
             alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
           }
         } else {
@@ -201,9 +213,9 @@ export function AuthorsManagement() {
                   {author.id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {author.image_avatar ? (
+                  {author.image ? (
                     <img
-                      src={`https://${author.image_avatar}`}
+                      src={formatImageUrl(author.image)}
                       alt={author.name}
                       className="h-10 w-10 rounded-full object-cover"
                     />

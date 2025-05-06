@@ -7,8 +7,13 @@ const imageCache = new Map<string, HTMLCanvasElement>();
 export const formatImageUrl = (imageUrl: string): string => {
   if (!imageUrl) return '';
 
-  // Nếu URL bắt đầu bằng 'localhost', thêm 'http://'
-  if (imageUrl.startsWith('localhost')) {
+  // Nếu URL đã có protocol (http:// hoặc https://), trả về nguyên bản
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+
+  // Nếu URL bắt đầu bằng 'localhost' hoặc '127.0.0.1', thêm 'http://'
+  if (imageUrl.startsWith('localhost') || imageUrl.startsWith('127.0.0.1')) {
     return `http://${imageUrl}`;
   }
 

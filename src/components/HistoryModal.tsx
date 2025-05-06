@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Clock, Book, BookOpen, Info } from "lucide-react";
+import { X, Clock, Book, BookOpen, Info, Trash2 } from "lucide-react";
 import { API_BASE_URL } from "../config/env";
 import { HistoryItem } from "../types/history";
 import { Link } from "react-router-dom";
@@ -15,41 +15,73 @@ export function HistoryModal({ isOpen, onClose, userInfo }: HistoryModalProps) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/history/`, {
+        headers: {
+          accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Bạn cần đăng nhập để xem lịch sử đọc truyện");
+        }
+        throw new Error("Không thể tải lịch sử đọc truyện");
+      }
+
+      const data = await response.json();
+      setHistory(data);
+      setError(null);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Đã xảy ra lỗi khi tải lịch sử đọc truyện");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteHistory = async (id: number) => {
+
+    setDeletingId(id);
+    try {
+      const response = await fetch(`${API_BASE_URL}/history/${id}`, {
+        method: "DELETE",
+        headers: {
+          accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Bạn cần đăng nhập để xóa lịch sử đọc truyện");
+        }
+        throw new Error("Không thể xóa lịch sử đọc truyện");
+      }
+
+      // Remove the deleted item from the history state
+      setHistory(history.filter(item => item.id !== id));
+    } catch (err) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Đã xảy ra lỗi khi xóa lịch sử đọc truyện");
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !userInfo) return;
-
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/history/`, {
-          headers: {
-            accept: "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Bạn cần đăng nhập để xem lịch sử đọc truyện");
-          }
-          throw new Error("Không thể tải lịch sử đọc truyện");
-        }
-
-        const data = await response.json();
-        setHistory(data);
-        setError(null);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Đã xảy ra lỗi khi tải lịch sử đọc truyện");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchHistory();
   }, [isOpen, userInfo]);
 
@@ -120,7 +152,21 @@ export function HistoryModal({ isOpen, onClose, userInfo }: HistoryModalProps) {
                       <Book className="w-5 h-5 text-blue-500" />
                     </div>
                     <div className="flex-grow">
-                      <p className="font-medium">{item.comic_info.name}</p>
+                      <div className="flex justify-between">
+                        <p className="font-medium">{item.comic_info.name}</p>
+                        <button
+                          onClick={() => handleDeleteHistory(item.id)}
+                          disabled={deletingId === item.id}
+                          className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors"
+                          title="Xóa khỏi lịch sử"
+                        >
+                          {deletingId === item.id ? (
+                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                       <p className="text-sm text-gray-600">
                         Chapter {item.chapter_info.number}: {item.chapter_info.title}
                       </p>

@@ -3,6 +3,7 @@ export interface Author {
   name: string;
   des?: string;
   image_avatar?: string;
+  image?: string;
 }
 
 export interface Comic {
